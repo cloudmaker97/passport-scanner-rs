@@ -37,12 +37,17 @@ jobs:
         with:
           ref: ${{ env.TAG }}
 
-      - name: Install pandoc and LaTeX
+      # Pinned: the page design in docs/user/handbook.typ follows these versions.
+      - name: Install pandoc and Typst
         run: |
-          sudo apt-get update
-          sudo apt-get install -y --no-install-recommends \
-            pandoc texlive-xetex texlive-latex-extra texlive-fonts-recommended \
-            fonts-dejavu lmodern
+          curl -fsSL -o pandoc.deb \
+            https://github.com/jgm/pandoc/releases/download/3.12.1/pandoc-3.12.1-1-amd64.deb
+          sudo dpkg -i pandoc.deb
+          curl -fsSL \
+            https://github.com/typst/typst/releases/download/v0.15.1/typst-x86_64-unknown-linux-musl.tar.xz \
+            | sudo tar -xJ --strip-components=1 -C /usr/local/bin typst-x86_64-unknown-linux-musl/typst
+          pandoc --version | head -1
+          typst --version
 
       - name: Build PDF
         run: VERSION="${TAG#v}" bash scripts/build-user-guide.sh dist/Passport-Scanner-User-Guide.pdf

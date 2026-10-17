@@ -19,7 +19,7 @@ somewhere else, set the environment variable `TESSERACT` to the full path of
    the file for your system from the newest release:
 
    | System | File |
-   |---|---|
+   |----|------|
    | Windows | `passport-scanner-windows-x64.zip` |
    | macOS (Apple silicon) | `passport-scanner-macos-arm64.zip` |
    | Linux | `passport-scanner-linux-x64.zip` |

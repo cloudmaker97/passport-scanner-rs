@@ -22,7 +22,7 @@ Starts a scan as soon as a document is put on the glass. See chapter
 ## Capture profile
 
 | Profile | Use it for |
-|---|---|
+|----|--------|
 | **General** | All documents. This is the default. |
 | **Identity card** | ID cards, with the scanner's special ID light. |
 | **Identity card · brighter** | Like *Identity card*, but brighter. Use it if ID pictures look too dark. |

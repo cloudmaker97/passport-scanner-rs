@@ -4,7 +4,7 @@
 
 Passport Scanner is free software. Copyright © 2026 Dennis Heinrich.
 
-You can share it and change it under the terms of the **MIT License**.
+You can share it and change it under the terms of the *MIT License*.
 
 In short:
 
@@ -14,7 +14,7 @@ In short:
   license you choose.
 - Whatever you pass on must keep the copyright notice and the license text.
 
-The program comes **without any warranty**, not even the implied warranty of
+The program comes *without any warranty*, not even the implied warranty of
 merchantability or fitness for a particular purpose. The full license text is
 the authority; it is printed at the end of this guide and is in the file
 `LICENSE` next to the program.
@@ -24,10 +24,10 @@ the authority; it is printed at the end of this guide and is in the file
 Passport Scanner is built on the work of others. Thank you.
 
 | Work | Used for | License |
-|---|---|---|
+|------|--------|-------|
 | Tesseract OCR | reading the text of the MRZ (installed separately) | Apache License 2.0 |
 | Iced | the program window | MIT |
-| Fira Sans, Fira Mono | fonts in the program window | SIL Open Font License 1.1 |
+| Fira Sans, Fira Mono | fonts in the program window and in this guide | SIL Open Font License 1.1 |
 | Material Design Icons (Google) | the program icon | Apache License 2.0 |
 | nokhwa | camera access on Windows (changed copy included) | Apache License 2.0 |
 | mozjpeg / libjpeg | JPEG pictures | IJG License, BSD-3-Clause, Zlib |

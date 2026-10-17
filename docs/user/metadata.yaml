@@ -3,16 +3,5 @@ title: Passport Scanner
 subtitle: User Guide
 author: Dennis Heinrich
 lang: en
-toc: true
-toc-depth: 2
 numbersections: true
-documentclass: report
-papersize: a4
-geometry: margin=2.5cm
-mainfont: DejaVu Sans
-monofont: DejaVu Sans Mono
-colorlinks: true
-header-includes:
-  - \usepackage{fvextra}
-  - \RecustomVerbatimEnvironment{verbatim}{Verbatim}{fontsize=\small,breaklines}
 ---

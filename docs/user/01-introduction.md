@@ -21,7 +21,7 @@ Everything happens on your own computer. Nothing is uploaded anywhere.
 ## Words used in this guide
 
 | Word | Meaning |
-|---|---|
+|----|----------|
 | Document | One card or passport, with its front and back. |
 | Side | The front or the back. |
 | White light | A normal colour picture. |
@@ -30,7 +30,7 @@ Everything happens on your own computer. Nothing is uploaded anywhere.
 | Calibration | A measurement that makes the picture evenly bright from edge to edge. |
 
 The program window can be shown in English or German. This guide uses the
-English labels, in **bold**. To switch the window to English, see chapter
+English labels and shows them like this: **Settings**. To switch the window to English, see chapter
 [Settings](#settings).
 
 ## Not a Plustek product

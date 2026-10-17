@@ -1,7 +1,7 @@
 # Troubleshooting
 
 | Problem | What to do |
-|---|---|
+|------|----------|
 | **Not connected** | Check the USB cable. Close other scanner programs. Click **Reconnect**. |
 | **The scanner service is not running.** | Close the program and start it again. |
 | The scan does not start by itself | Switch on **Scan automatically**, or click **Scan front** / **Scan back**. Lift the card off fully between scans. |

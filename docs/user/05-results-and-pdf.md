@@ -6,7 +6,7 @@ After a scan, the area **Document data** shows what was read
 from the MRZ:
 
 | Field | Meaning |
-|---|---|
+|----|-----|
 | Document type | passport, ID card or other travel document |
 | Surname | family name |
 | Given names | first names |
@@ -20,7 +20,7 @@ from the MRZ:
 The badge next to it tells you how sure the result is:
 
 | Badge | Meaning |
-|---|---|
+|----|--------|
 | **MRZ verified** | All check digits are correct. You can trust the data. |
 | **MRZ unverified** | Text was read, but the check digits do not match. Compare it with the document by eye. |
 | **No MRZ** | Nothing was found. This is normal for the front of most ID cards. |
@@ -59,7 +59,7 @@ The PDF button only works when all four pictures exist; it shows
 Right-click a document in the list to open its menu:
 
 | Entry | What it does |
-|---|---|
+|----|--------|
 | **Save as …** | Saves the PDF to a place you choose, even if a PDF folder is set. Needs all four pictures. |
 | **Delete** | Removes the document, front and back, from the list. This cannot be undone. |
 
@@ -67,7 +67,7 @@ Right-click again, press **Esc** or click a document to close the menu.
 
 ## Important: save before you close
 
-The program does **not** keep documents after you close it. Save every PDF you
+The program does *not* keep documents after you close it. Save every PDF you
 need before closing the window.
 
 Documents may contain personal data. Store the PDFs safely and delete them when
