@@ -23,7 +23,7 @@ pub mod ocr;
 pub mod orientation;
 pub mod text;
 
-use image::{DynamicImage, GenericImageView, ImageDecoder, ImageReader};
+use image::{DynamicImage, ImageDecoder, ImageReader};
 use passport_scanner_core::{
     Document, DocumentRecognizer, Error, Frame, LightSource, PixelFormat, Result,
 };
@@ -99,25 +99,32 @@ impl<E: Engine> MrzReader<E> {
     /// Returns the successful clockwise rotation in degrees (0, 180, -90, 90).
     /// The reported strip is mapped back to the original frame coordinates;
     /// the input pixels are never changed. The angle may drive a UI preview.
+    ///
+    /// Every ICAO 9303 format runs its zone along the document's long edge,
+    /// so when the document plainly lies landscape or portrait, only the two
+    /// turns that keep that edge horizontal can find a zone. The other two
+    /// are skipped: on a face without a zone they cost as much as the rest.
     pub fn read_frame_oriented(&self, frame: &Frame) -> Result<(Reading, i16)> {
-        let image = decode(frame)?;
+        // Everything below reads grey, so turn grey once and rotate that: a
+        // third of the pixels to move per attempt.
+        let grey = decode(frame)?.to_luma8();
+        let (width, height) = grey.dimensions();
         let mut fallback = None;
         let mut last = None;
-        for angle in [0, 180, -90, 90] {
+        for angle in self.orientations(&grey) {
             let started = std::time::Instant::now();
             let rotated = match angle {
-                180 => image.rotate180(),
-                -90 => image.rotate270(),
-                90 => image.rotate90(),
-                _ => image.clone(),
+                180 => image::imageops::rotate180(&grey),
+                -90 => image::imageops::rotate270(&grey),
+                90 => image::imageops::rotate90(&grey),
+                _ => grey.clone(),
             };
             let attempt = self.read_image(&rotated);
             tracing::debug!(source = ?frame.source, rotation_clockwise_degrees = angle,
                 elapsed_ms = started.elapsed().as_millis(), "MRZ orientation attempt completed");
             match attempt {
                 Ok(mut reading) => {
-                    reading.strip =
-                        original_strip(reading.strip, image.width(), image.height(), angle);
+                    reading.strip = original_strip(reading.strip, width, height, angle);
                     if verified(&reading) {
                         tracing::debug!(
                             rotation_clockwise_degrees = angle,
@@ -139,8 +146,15 @@ impl<E: Engine> MrzReader<E> {
         fallback.ok_or_else(|| last.unwrap_or_else(|| Error::Malformed("no document found".into())))
     }
 
-    fn read_image(&self, image: &DynamicImage) -> Result<Reading> {
-        let grey = image.to_luma8();
+    /// The turns worth trying, given which way the document lies.
+    fn orientations(&self, grey: &image::GrayImage) -> Vec<i16> {
+        let (w, h) = grey.dimensions();
+        let document = passport_scanner_imaging::crop::bounds(grey.as_raw(), w, h, self.threshold)
+            .filter(|r| r.plausible(w, h));
+        orientations_for(document)
+    }
+
+    fn read_image(&self, grey: &image::GrayImage) -> Result<Reading> {
         let (w, h) = grey.dimensions();
 
         let document = passport_scanner_imaging::crop::bounds(grey.as_raw(), w, h, self.threshold)
@@ -148,18 +162,19 @@ impl<E: Engine> MrzReader<E> {
             .ok_or_else(|| Error::Malformed("no document found on the platen".to_owned()))?;
 
         let strip = locate::zone_strip(document);
-        let cropped = image.view(strip.x, strip.y, strip.w, strip.h).to_image();
+        let cropped =
+            image::imageops::crop_imm(grey, strip.x, strip.y, strip.w, strip.h).to_image();
 
         // Keep the established fast path for an already readable MRZ. A failed
         // attempt may be caused by a small line slope or by clipped edge glyphs.
-        let original = self.read_ocr_image(DynamicImage::ImageRgba8(cropped), strip, SCALE)?;
+        let original = self.read_ocr_image(&cropped, strip, SCALE)?;
         if verified(&original) {
             return Ok(original);
         }
         let expanded = document.grown((document.w / 100).max(2), w, h);
         let retry_strip = locate::zone_strip_for_skew(expanded);
         let band = image::imageops::crop_imm(
-            &grey,
+            grey,
             retry_strip.x,
             retry_strip.y,
             retry_strip.w,
@@ -172,7 +187,7 @@ impl<E: Engine> MrzReader<E> {
             ..locate::zone_strip(expanded)
         };
         let narrow_band = image::imageops::crop_imm(
-            &grey,
+            grey,
             narrow_strip.x,
             narrow_strip.y,
             narrow_strip.w,
@@ -184,12 +199,7 @@ impl<E: Engine> MrzReader<E> {
         // plainly saw a zone, read the same band at full width before
         // concluding anything, with or without measurable skew.
         let original = if text::looks_like_zone(&original.text) {
-            let full = image.view(narrow_strip.x, narrow_strip.y, narrow_strip.w, narrow_strip.h);
-            let full = self.read_ocr_image(
-                DynamicImage::ImageRgba8(full.to_image()),
-                narrow_strip,
-                SCALE,
-            )?;
+            let full = self.read_ocr_image(&narrow_band, narrow_strip, SCALE)?;
             if verified(&full) {
                 return Ok(full);
             }
@@ -213,7 +223,7 @@ impl<E: Engine> MrzReader<E> {
         // same structural and checksum checks as the original reading.
         for (strip, pixels) in [(narrow_strip, narrow_band), (retry_strip, band)] {
             let aligned = deskew::rotate_expanded(&pixels, estimate.correction_degrees);
-            let corrected = self.read_ocr_image(DynamicImage::ImageLuma8(aligned), strip, 1)?;
+            let corrected = self.read_ocr_image(&aligned, strip, 1)?;
             if verified(&corrected) {
                 return Ok(corrected);
             }
@@ -226,7 +236,7 @@ impl<E: Engine> MrzReader<E> {
 
     fn read_ocr_image(
         &self,
-        image: DynamicImage,
+        image: &image::GrayImage,
         strip: passport_scanner_core::Rect,
         scale: u32,
     ) -> Result<Reading> {
@@ -234,13 +244,16 @@ impl<E: Engine> MrzReader<E> {
 
         // Prepare OCR input without discarding antialiased character strokes.
         // The captured/processed document image itself is left untouched.
-        let scaled = image
-            .resize(
-                image.width().saturating_mul(scale).min(6000),
-                image.height().saturating_mul(scale).min(2000),
-                image::imageops::FilterType::Lanczos3,
-            )
-            .to_luma8();
+        // Scaled in grey: the engine reads grey, so filtering colour first
+        // would be more channels of Lanczos for nothing.
+        let (w, h) = image.dimensions();
+        let (tw, th) =
+            fit(w, h, w.saturating_mul(scale).min(6000), h.saturating_mul(scale).min(2000));
+        let scaled = if (tw, th) == (w, h) {
+            image.clone()
+        } else {
+            image::imageops::resize(image, tw, th, image::imageops::FilterType::Lanczos3)
+        };
 
         let preparation_ms = started.elapsed().as_millis();
         let ocr_started = std::time::Instant::now();
@@ -268,6 +281,27 @@ fn optional_letters(lines: &[String]) -> usize {
         return usize::MAX;
     }
     lines[0][15..].bytes().chain(lines[1][18..29].bytes()).filter(|&c| c != b'<').count()
+}
+
+/// The largest size within `max_w` x `max_h` that keeps the aspect ratio,
+/// rounded as `DynamicImage::resize` rounds it.
+fn fit(w: u32, h: u32, max_w: u32, max_h: u32) -> (u32, u32) {
+    let ratio = f64::min(f64::from(max_w) / f64::from(w), f64::from(max_h) / f64::from(h));
+    let side = |n: u32| ((f64::from(n) * ratio).round() as u32).max(1);
+    (side(w), side(h))
+}
+
+/// Which turns can bring a zone level, for a document found at `document`.
+///
+/// The zone runs along the long edge, so a clearly landscape document only
+/// needs upright and upside down, a clearly portrait one only the quarter
+/// turns. Near-square, or nothing found, tries everything.
+fn orientations_for(document: Option<passport_scanner_core::Rect>) -> Vec<i16> {
+    match document {
+        Some(r) if u64::from(r.w) * 10 >= u64::from(r.h) * 12 => vec![0, 180],
+        Some(r) if u64::from(r.h) * 10 >= u64::from(r.w) * 12 => vec![-90, 90],
+        _ => vec![0, 180, -90, 90],
+    }
 }
 
 fn verified(reading: &Reading) -> bool {
@@ -543,8 +577,9 @@ mod tests {
         for (pixels, expected_angle, expected_calls) in [
             (upright.clone(), 0, 1),
             (image::imageops::rotate180(&upright), 180, 2),
-            (image::imageops::rotate90(&upright), -90, 3),
-            (image::imageops::rotate270(&upright), 90, 4),
+            // A portrait document only gets the quarter turns.
+            (image::imageops::rotate90(&upright), -90, 1),
+            (image::imageops::rotate270(&upright), 90, 2),
         ] {
             let calls = Arc::new(AtomicUsize::new(0));
             let reader = MrzReader::new(MarkerEngine(calls.clone()));
@@ -558,6 +593,23 @@ mod tests {
             assert!(reading.strip.x + reading.strip.w <= input.width);
             assert!(reading.strip.y + reading.strip.h <= input.height);
         }
+    }
+
+    #[test]
+    fn only_turns_that_level_the_long_edge_are_tried() {
+        use passport_scanner_core::Rect;
+        let rect = |w, h| Some(Rect { x: 0, y: 0, w, h });
+        assert_eq!(orientations_for(rect(860, 540)), [0, 180]);
+        assert_eq!(orientations_for(rect(540, 860)), [-90, 90]);
+        assert_eq!(orientations_for(rect(600, 560)), [0, 180, -90, 90]);
+        assert_eq!(orientations_for(None), [0, 180, -90, 90]);
+    }
+
+    #[test]
+    fn fitting_keeps_the_aspect_ratio_like_the_image_crate() {
+        assert_eq!(fit(2400, 530, 4800, 1060), (4800, 1060));
+        assert_eq!(fit(4000, 530, 6000, 1060), (6000, 795));
+        assert_eq!(fit(100, 50, 100, 50), (100, 50));
     }
 
     #[test]
