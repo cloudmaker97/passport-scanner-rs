@@ -37,7 +37,7 @@ try {
 
 # A running service holds its own executable open, so say so plainly rather
 # than failing on an access error the reader has to decode.
-$running = Get-Process -Name "passport-scanner-*" -ErrorAction SilentlyContinue |
+$running = Get-Process -Name "passport-scanner-*", "Passport Scanner" -ErrorAction SilentlyContinue |
     Where-Object { $_.Path -and $_.Path.StartsWith($dist) }
 if ($running) {
     $names = ($running | ForEach-Object { $_.Name }) -join ", "
@@ -61,6 +61,8 @@ New-Item -ItemType Directory -Force -Path $www | Out-Null
 New-Item -ItemType Directory -Force -Path (Join-Path $dist "licenses") | Out-Null
 # The former HTML interface is superseded by www\.
 Remove-Item -Recurse -Force -ErrorAction SilentlyContinue (Join-Path $dist "ui")
+# Programs the former flat layout kept beside the desktop program.
+Get-ChildItem $dist -Filter "passport-scanner-*.exe" -File -ErrorAction SilentlyContinue | Remove-Item -Force
 
 $module = Join-Path $root "target\wasm32-unknown-unknown\release\passport-scanner-webui.wasm"
 & $bindgen.Source --target web --no-typescript --out-dir $www $module
@@ -71,14 +73,24 @@ if ($optimizer) {
     & $optimizer.Source -Oz --enable-bulk-memory --enable-nontrapping-float-to-int -o $output $output
     if ($LASTEXITCODE -ne 0) { throw "wasm-opt failed" }
 }
-
-Copy-Item (Join-Path $root "target\release\passport-scanner-*.exe") $dist
 Copy-Item (Join-Path $root "crates\passport-scanner-webui\index.html") $www
-Copy-Item (Join-Path $root "licenses\application-icon.md") (Join-Path $dist "licenses")
-Copy-Item (Join-Path $root "licenses\fira-mono-OFL.txt") (Join-Path $dist "licenses")
+
+# "Passport Scanner" at the top, the other programs where
+# scripts\release-layout.txt puts them - the same layout as a release.
+$release = Join-Path $root "target\release"
+Copy-Item (Join-Path $release "passport-scanner-desktop.exe") (Join-Path $dist "Passport Scanner.exe")
+foreach ($line in Get-Content (Join-Path $root "scripts\release-layout.txt")) {
+    $fields = $line.Trim() -split "\s+"
+    if ($fields.Count -lt 2 -or $fields[0].StartsWith("#") -or $fields[0] -eq "-") { continue }
+    $folder = Join-Path $dist $fields[0]
+    New-Item -ItemType Directory -Force -Path $folder | Out-Null
+    Copy-Item (Join-Path $release "$($fields[1]).exe") $folder
+}
+Copy-Item (Join-Path $root "LICENSE") $dist
+Copy-Item (Join-Path $root "licenses\*") (Join-Path $dist "licenses")
 
 Write-Host "`ndist\" -ForegroundColor Green
 Get-ChildItem $dist -Recurse -File | ForEach-Object {
-    "  {0,-28} {1,8:N0} bytes" -f $_.FullName.Replace("$dist\", ""), $_.Length
+    "  {0,-44} {1,12:N0} bytes" -f $_.FullName.Replace("$dist\", ""), $_.Length
 }
-Write-Host "`nstart the desktop with:  .\dist\passport-scanner-desktop.exe" -ForegroundColor Cyan
+Write-Host "`nstart the desktop with:  & '.\dist\Passport Scanner.exe'" -ForegroundColor Cyan

@@ -14,7 +14,7 @@ output, calibration-file audits) is not committed.
 
 ```powershell
 .\package.ps1                         # build everything into dist\
-.\dist\passport-scanner-desktop.exe   # native Iced UI
+& '.\dist\Passport Scanner.exe'       # native Iced UI; other programs in tools\ and debug-tools\
 ```
 
 **Requirements:** Rust ≥ 1.88; on Windows the MSVC linker (VS Build Tools, C++
@@ -130,7 +130,7 @@ reflections stay excluded. Real capture: white 1158×1118 → 1751×1119 (IR
 
   `rawLines` is the grid after conservative filler recovery, not raw Tesseract
   output. Names have no check digit. Cannot scan or change settings. Stdio bridge:
-  `{"mcpServers":{"passport-scanner":{"command":"C:\\…\\dist\\passport-scanner-mcp.exe","args":[]}}}`
+  `{"mcpServers":{"passport-scanner":{"command":"C:\\…\\dist\\tools\\passport-scanner-mcp.exe","args":[]}}}`
   (desktop must run with MCP on). POSTs after init need `MCP-Protocol-Version`
   and `Content-Type: application/json`; notifications → 202; no GET streaming.
   All listeners loopback-only, reject non-local Origin/Host, upload nothing.

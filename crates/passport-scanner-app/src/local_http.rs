@@ -326,9 +326,18 @@ fn is_asset(path: &str) -> bool {
     find_asset(path).is_some()
 }
 
+/// The browser client: `PASSPORT_SCANNER_WEBUI_DIR`, else `www` beside this
+/// program, else `www` one folder up - where it is when this runs from
+/// `tools/` in a release.
 fn webui_dir() -> Option<std::path::PathBuf> {
     std::env::var_os("PASSPORT_SCANNER_WEBUI_DIR").map(Into::into).or_else(|| {
-        std::env::current_exe().ok().and_then(|exe| exe.parent().map(|dir| dir.join("www")))
+        let exe = std::env::current_exe().ok()?;
+        let here = exe.parent()?.join("www");
+        let above = exe.parent()?.parent().map(|dir| dir.join("www"));
+        Some(match above {
+            Some(above) if !here.exists() && above.exists() => above,
+            _ => here,
+        })
     })
 }
 

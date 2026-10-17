@@ -28,6 +28,30 @@ const ASSET: Option<&str> = if cfg!(all(target_os = "windows", target_arch = "x8
     None
 };
 const REPOSITORY: &str = env!("CARGO_PKG_REPOSITORY");
+/// The desktop program's file name in a release; the release workflow and
+/// `package.ps1` name it so.
+const PROGRAM: &str = if cfg!(windows) { "Passport Scanner.exe" } else { "Passport Scanner" };
+/// Files that releases before the tools/ and debug-tools/ folders kept beside
+/// the program. An update brings their replacements in the new places, so
+/// whatever of these is left over is out of date.
+const SUPERSEDED: [&str; 16] = [
+    "passport-scanner-desktop",
+    "passport-scanner-scan",
+    "passport-scanner-dump",
+    "passport-scanner-lamps",
+    "passport-scanner-serve",
+    "passport-scanner-read",
+    "passport-scanner-expose",
+    "passport-scanner-controls",
+    "passport-scanner-exposure",
+    "passport-scanner-probe",
+    "passport-scanner-time",
+    "passport-scanner-stages",
+    "passport-scanner-survey",
+    "passport-scanner-calibrate",
+    "passport-scanner-web",
+    "passport-scanner-mcp",
+];
 const REPLACED: &str = "replaced";
 const STAGING: &str = ".update";
 /// Far above any real archive; stops a broken server from filling the memory.
@@ -220,6 +244,24 @@ fn replaced(path: &Path) -> PathBuf {
 pub(crate) fn clean_up() {
     let Ok(folder) = program_folder() else { return };
     clean_folder(&folder, 1);
+    retire_superseded(&folder);
+}
+
+/// Remove the loose programs of an older layout, once this program runs as
+/// the release names it - never in a development build, where those files
+/// are the build itself.
+fn retire_superseded(folder: &Path) {
+    if !folder.join(PROGRAM).exists() || !folder.join(passport_scanner_app::TOOLS_DIR).is_dir() {
+        return;
+    }
+    for name in SUPERSEDED {
+        let file = folder.join(if cfg!(windows) { format!("{name}.exe") } else { name.to_owned() });
+        // The old program may be the one still running after an update from
+        // it; renamed, it goes on the next start like any replaced file.
+        if fs::remove_file(&file).is_err() && file.exists() {
+            let _ = fs::rename(&file, replaced(&file));
+        }
+    }
 }
 
 fn clean_folder(folder: &Path, depth: u8) {
@@ -241,13 +283,16 @@ pub(crate) fn request_restart() {
     RESTART.store(true, Ordering::SeqCst);
 }
 
-/// Start `exe` if a restart was asked for; the old session is gone by now, so
-/// the new one finds the scanner free.
+/// Start the program again if a restart was asked for; the old session is
+/// gone by now, so the new one finds the scanner free. That is the program as
+/// the installed release names it, which need not be the name `exe` - the
+/// running one - had.
 pub(crate) fn restart_if_requested(exe: Option<PathBuf>) {
     if RESTART.load(Ordering::SeqCst)
         && let Some(exe) = exe
     {
-        let _ = std::process::Command::new(exe).spawn();
+        let named = exe.with_file_name(PROGRAM);
+        let _ = std::process::Command::new(if named.exists() { named } else { exe }).spawn();
     }
 }
 
@@ -333,6 +378,27 @@ mod tests {
         clean_folder(&folder, 1);
         assert!(!folder.join("program.exe.replaced").exists());
         assert!(folder.join("program.exe").exists());
+        fs::remove_dir_all(folder).unwrap();
+    }
+
+    #[test]
+    fn an_old_flat_layout_is_cleared_once_the_new_one_is_in_place() {
+        let folder = scratch();
+        let exe = |name: &str| if cfg!(windows) { format!("{name}.exe") } else { name.to_owned() };
+        fs::write(folder.join(exe("passport-scanner-desktop")), "old").unwrap();
+        fs::write(folder.join(exe("passport-scanner-mcp")), "old").unwrap();
+        fs::write(folder.join("user-notes.txt"), "mine").unwrap();
+        // Not yet: without the new layout these are the program itself.
+        retire_superseded(&folder);
+        assert!(folder.join(exe("passport-scanner-desktop")).exists());
+
+        fs::write(folder.join(PROGRAM), "new").unwrap();
+        fs::create_dir_all(folder.join(passport_scanner_app::TOOLS_DIR)).unwrap();
+        retire_superseded(&folder);
+        assert!(!folder.join(exe("passport-scanner-desktop")).exists());
+        assert!(!folder.join(exe("passport-scanner-mcp")).exists());
+        assert!(folder.join(PROGRAM).exists());
+        assert!(folder.join("user-notes.txt").exists());
         fs::remove_dir_all(folder).unwrap();
     }
 

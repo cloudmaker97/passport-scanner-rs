@@ -86,17 +86,13 @@ jobs:
             target/wasm32-unknown-unknown/release/passport-scanner-webui.wasm
           cp crates/passport-scanner-webui/index.html dist/www/
 
-      # Same layout as package.ps1: the programs, with www/ beside them.
+      # Same layout as package.ps1: "Passport Scanner" at the top, the other
+      # programs in tools/ and debug-tools/; see scripts/release-layout.txt.
       - name: Collect binaries
         shell: bash
         run: |
-          cp LICENSE dist/
-          cp -r licenses dist/
-          for f in target/release/passport-scanner-*; do
-            case "$f" in *.d|*.pdb) continue ;; esac
-            [ -f "$f" ] && cp "$f" dist/
-          done
-          ls -la dist
+          bash scripts/collect-release.sh dist
+          find dist -type f | sort
 
       - uses: actions/upload-artifact@v4
         with:

@@ -77,6 +77,11 @@ and restarts on request. The archive names above are what it looks for; change
 them in `build.yml` and `crates/passport-scanner-desktop/src/update.rs`
 together. Development builds never update themselves.
 
+Inside each archive the desktop program is `Passport Scanner`; the other
+programs sit in `tools/` (web, MCP, command-line scanning) and `debug-tools/`
+(hardware and imaging diagnostics), as `scripts/release-layout.txt` places
+them. `package.ps1` builds `dist\` in the same layout.
+
 ### Boundaries kept, deliberately
 
 - Decompilation was used only where observation could not answer the question,

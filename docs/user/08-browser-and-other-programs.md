@@ -34,13 +34,13 @@ delete anything.
 
 1. Open **Settings** and switch on **MCP**.
 2. In your assistant, add a server that runs `passport-scanner-mcp.exe` from
-   the program folder. Example for Claude Desktop:
+   the `tools` folder inside the program folder. Example for Claude Desktop:
 
 ```json
 {
   "mcpServers": {
     "passport-scanner": {
-      "command": "C:\\Programs\\Passport Scanner\\passport-scanner-mcp.exe",
+      "command": "C:\\Programs\\Passport Scanner\\tools\\passport-scanner-mcp.exe",
       "args": []
     }
   }

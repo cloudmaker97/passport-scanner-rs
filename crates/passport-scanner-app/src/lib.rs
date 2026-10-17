@@ -39,6 +39,22 @@ type Transport = passport_scanner_transport_ks::KsTransport;
 #[cfg(windows)]
 pub type OpenScanner = Scanner<Transport, CameraSource>;
 
+/// Where the companion programs live in a release: `tools/` beside the
+/// desktop program. A development build keeps them all in one folder.
+pub const TOOLS_DIR: &str = "tools";
+
+/// The companion program `name`, looked for in [`TOOLS_DIR`] beside the
+/// running one and then beside it directly.
+///
+/// # Errors
+/// Fails only if the running program cannot say where it is.
+pub fn sibling_tool(name: &str) -> std::io::Result<std::path::PathBuf> {
+    let exe = std::env::current_exe()?;
+    let folder = exe.parent().unwrap_or_else(|| std::path::Path::new("."));
+    let packaged = folder.join(TOOLS_DIR).join(name);
+    Ok(if packaged.exists() { packaged } else { folder.join(name) })
+}
+
 /// Find a scanner, open both its channels, and load its calibration.
 ///
 /// # Errors

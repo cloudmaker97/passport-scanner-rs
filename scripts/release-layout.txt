@@ -1,0 +1,24 @@
+# Which folder of a release each program goes into. Read by package.ps1 and
+# .github/workflows/build.yml; the desktop program itself is renamed to
+# "Passport Scanner" and sits at the top. Every program the build produces
+# must be listed here, so a new one cannot be left out by accident.
+#
+# A folder of "-" means built but not shipped.
+#
+# folder       program
+tools          passport-scanner-web
+tools          passport-scanner-serve
+tools          passport-scanner-mcp
+tools          passport-scanner-scan
+tools          passport-scanner-read
+tools          passport-scanner-calibrate
+debug-tools    passport-scanner-dump
+debug-tools    passport-scanner-lamps
+debug-tools    passport-scanner-expose
+debug-tools    passport-scanner-controls
+debug-tools    passport-scanner-exposure
+debug-tools    passport-scanner-probe
+debug-tools    passport-scanner-time
+debug-tools    passport-scanner-stages
+debug-tools    passport-scanner-survey
+-              passport-scanner-webui

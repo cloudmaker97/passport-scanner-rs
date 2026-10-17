@@ -70,11 +70,11 @@ impl Host {
         }
         if enabled && web.is_none() {
             drop(TcpListener::bind(local_http::WEB_ADDRESS)?);
-            let exe = std::env::current_exe()?.with_file_name(if cfg!(windows) {
+            let exe = crate::sibling_tool(if cfg!(windows) {
                 "passport-scanner-web.exe"
             } else {
                 "passport-scanner-web"
-            });
+            })?;
             let mut process = Process::new(&exe);
             process
                 .stdin(std::process::Stdio::null())
