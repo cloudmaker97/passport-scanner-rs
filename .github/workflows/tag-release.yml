@@ -8,7 +8,7 @@ name: Tag release
 on:
   push:
     branches: [main]
-    paths: [Cargo.toml]
+    paths: [Cargo.toml, Cargo.lock]
   workflow_dispatch:
 
 permissions:
