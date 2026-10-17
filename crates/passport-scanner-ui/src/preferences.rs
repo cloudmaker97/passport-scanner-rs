@@ -22,13 +22,26 @@ impl Appearance {
 }
 
 /// What the interface remembers between runs.
-#[derive(Debug, Default, Clone, PartialEq, Eq)]
+#[derive(Debug, Clone, PartialEq, Eq)]
 pub struct Preferences {
     pub appearance: Appearance,
     /// `None` until chosen: the platform language decides.
     pub locale: Option<Locale>,
     /// Where PDFs are saved without asking; `None` asks each time. Native only.
     pub pdf_folder: Option<String>,
+    /// Look for releases by itself and install them. On unless turned off.
+    pub auto_update: bool,
+}
+
+impl Default for Preferences {
+    fn default() -> Self {
+        Self {
+            appearance: Appearance::default(),
+            locale: None,
+            pdf_folder: None,
+            auto_update: true,
+        }
+    }
 }
 
 /// Where preferences live: a file beside the native settings, or browser storage.

@@ -282,7 +282,7 @@ mod web {
                     .and_then(|v| Appearance::from_key(&v))
                     .unwrap_or_default(),
                 locale: read(LOCALE).and_then(|v| Locale::from_key(&v)),
-                pdf_folder: None,
+                ..Preferences::default()
             })
         }
 

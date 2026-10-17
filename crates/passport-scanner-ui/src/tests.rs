@@ -300,7 +300,8 @@ fn appearance_change_keeps_the_chosen_language() {
         Some(Preferences {
             appearance: Appearance::Light,
             locale: Some(Locale::En),
-            pdf_folder: None
+            pdf_folder: None,
+            auto_update: true,
         })
     );
 }
@@ -354,17 +355,20 @@ impl Backend for Scripted {
 }
 
 #[test]
-fn updates_are_looked_for_once_installed_on_request_and_then_restart() {
+fn manual_updates_are_looked_for_on_request_installed_on_request_and_then_restart() {
     let installed = Rc::new(RefCell::new(Vec::new()));
+    let manual = Preferences { auto_update: false, ..Preferences::default() };
     let mut app = App::new(
         Box::new(Scripted { updates: true, installed: installed.clone(), ..Default::default() }),
-        Box::<Memory>::default(),
+        Box::new(Memory(RefCell::new(manual))),
     );
     let _ = app.update(Message::Tick);
+    assert_eq!(app.updating, Updating::Idle, "turned off: nothing is looked for by itself");
+    let _ = app.update(Message::CheckUpdate);
     assert_eq!(app.updating, Updating::Checking);
     let update = Update { version: "0.2.0".into(), download: "archive".into(), digest: None };
     let _ = app.update(Message::UpdateChecked(Ok(Some(update.clone()))));
-    // Only the first tick looks; later ticks leave the offer alone.
+    // Found, but only offered: installing waits for the button.
     let _ = app.update(Message::Tick);
     assert_eq!(app.updating, Updating::Available(update.clone()));
     let _ = app.update(Message::Restart);
@@ -382,6 +386,52 @@ fn updates_are_looked_for_once_installed_on_request_and_then_restart() {
     // Nothing to look for while an installed update waits for its restart.
     let _ = app.update(Message::CheckUpdate);
     assert_eq!(app.updating, Updating::Installed("0.2.0".into()));
+}
+
+#[test]
+fn automatic_updates_look_on_start_and_install_what_they_find() {
+    let installed = Rc::new(RefCell::new(Vec::new()));
+    let store = Memory::default();
+    let mut app = App::new(
+        Box::new(Scripted { updates: true, installed: installed.clone(), ..Default::default() }),
+        Box::new(store),
+    );
+    assert!(app.auto_update, "on unless turned off");
+    let _ = app.update(Message::Tick);
+    assert_eq!(app.updating, Updating::Checking);
+    let update = Update { version: "0.2.0".into(), download: "archive".into(), digest: None };
+    let _ = app.update(Message::UpdateChecked(Ok(Some(update.clone()))));
+    assert_eq!(*installed.borrow(), vec![update.clone()]);
+    assert_eq!(app.updating, Updating::Installing(update));
+    let _ = app.update(Message::UpdateInstalled(Ok(())));
+    // Never restarted by itself: the session may hold unsaved scans.
+    assert_eq!(app.updating, Updating::Installed("0.2.0".into()));
+}
+
+#[test]
+fn turning_automatic_updates_on_is_remembered_and_looks_at_once() {
+    let manual = Preferences { auto_update: false, ..Preferences::default() };
+    let shared = Rc::new(RefCell::new(manual));
+    #[derive(Debug)]
+    struct Kept(Rc<RefCell<Preferences>>);
+    impl Store for Kept {
+        fn load(&self) -> Result<Preferences, String> {
+            Ok(self.0.borrow().clone())
+        }
+        fn save(&self, preferences: Preferences) -> Result<(), String> {
+            *self.0.borrow_mut() = preferences;
+            Ok(())
+        }
+    }
+    let mut app = App::new(
+        Box::new(Scripted { updates: true, ..Default::default() }),
+        Box::new(Kept(shared.clone())),
+    );
+    let _ = app.update(Message::AutoUpdate(true));
+    assert!(shared.borrow().auto_update);
+    assert_eq!(app.updating, Updating::Checking);
+    let _ = app.update(Message::AutoUpdate(false));
+    assert!(!shared.borrow().auto_update);
 }
 
 #[test]

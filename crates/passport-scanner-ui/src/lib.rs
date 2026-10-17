@@ -28,6 +28,9 @@ use model::{Document, Documents};
 use passport_scanner_protocol::{Command, Device, Event, Scan, Side, Source, Stage};
 use std::{collections::HashMap, time::Duration};
 
+/// How often a running program looks for a release when updating by itself.
+const UPDATE_INTERVAL: Duration = Duration::from_secs(6 * 60 * 60);
+
 pub const TITLE: &str = "Passport Scanner";
 /// The release build stamps its tag through `PASSPORT_SCANNER_VERSION`.
 pub const VERSION: &str = match option_env!("PASSPORT_SCANNER_VERSION") {
@@ -141,6 +144,8 @@ pub enum Message {
     ResetFolder,
     DismissNotice,
     CheckUpdate,
+    /// Turn looking for and installing releases by itself on or off.
+    AutoUpdate(bool),
     /// Open a page in the browser.
     OpenLink(&'static str),
     UpdateChecked(Result<Option<Update>, String>),
@@ -189,6 +194,8 @@ pub struct App {
     updating: Updating,
     /// The automatic look for a newer release happens once per start.
     update_checked: bool,
+    /// Look for releases by itself and install what it finds.
+    auto_update: bool,
     #[cfg(feature = "render-smoke")]
     smoke_ticks: u8,
     #[cfg(feature = "render-smoke")]
@@ -207,6 +214,7 @@ impl App {
                     state.locale = locale;
                 }
                 state.pdf_folder = preferences.pdf_folder;
+                state.auto_update = preferences.auto_update;
             }
             Err(error) => state.fail(format!("{}: {error}", state.t().settings_not_loaded)),
         }
@@ -270,6 +278,7 @@ impl App {
             pdf_folder: None,
             updating: Updating::Idle,
             update_checked: false,
+            auto_update: true,
             #[cfg(feature = "render-smoke")]
             smoke_ticks: 0,
             #[cfg(feature = "render-smoke")]
@@ -334,6 +343,12 @@ impl App {
     pub fn subscription(&self) -> Subscription<Message> {
         Subscription::batch([
             iced::time::every(Duration::from_millis(100)).map(|_| Message::Tick),
+            // A program left running for days still hears of a release.
+            if self.auto_update && self.backend.updates() {
+                iced::time::every(UPDATE_INTERVAL).map(|_| Message::CheckUpdate)
+            } else {
+                Subscription::none()
+            },
             iced::event::listen_with(|event, _, _| match event {
                 iced::Event::Keyboard(iced::keyboard::Event::KeyPressed {
                     key: iced::keyboard::Key::Named(iced::keyboard::key::Named::Escape),
@@ -368,6 +383,7 @@ impl App {
             appearance: self.appearance,
             locale: Some(self.locale),
             pdf_folder: self.pdf_folder.clone(),
+            auto_update: self.auto_update,
         };
         if let Err(error) = self.store.save(preferences) {
             self.fail(format!("{}: {error}", self.t().settings_not_saved));
@@ -409,7 +425,9 @@ impl App {
                 }
                 if !self.update_checked {
                     self.update_checked = true;
-                    return Task::batch([self.auto_save(), self.check_update()]);
+                    if self.auto_update {
+                        return Task::batch([self.auto_save(), self.check_update()]);
+                    }
                 }
                 return self.auto_save();
             }
@@ -561,6 +579,19 @@ impl App {
                     Ok(None) => Updating::Current,
                     Err(error) => Updating::Failed(error),
                 };
+                // Installing only puts the files in place; the running
+                // session and its unsaved scans are left alone until the
+                // person restarts.
+                if self.auto_update && matches!(self.updating, Updating::Available(_)) {
+                    return self.update(Message::InstallUpdate);
+                }
+            }
+            Message::AutoUpdate(enabled) => {
+                self.auto_update = enabled;
+                self.save_preferences();
+                if enabled {
+                    return self.check_update();
+                }
             }
             Message::InstallUpdate => {
                 if let Updating::Available(update) = &self.updating {

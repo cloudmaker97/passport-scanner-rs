@@ -54,14 +54,24 @@ fn load_from(path: &Path) -> io::Result<Preferences> {
         Some(serde_json::Value::String(folder)) if !folder.is_empty() => Some(folder.clone()),
         Some(_) => return Err(invalid("invalid pdfFolder")),
     };
-    Ok(Preferences { appearance, locale, pdf_folder })
+    // Absent in files written before it existed: on, like a fresh install.
+    let auto_update = match value.get("autoUpdate") {
+        None => true,
+        Some(serde_json::Value::Bool(on)) => *on,
+        Some(_) => return Err(invalid("invalid autoUpdate")),
+    };
+    Ok(Preferences { appearance, locale, pdf_folder, auto_update })
 }
 
 fn save_to(path: &Path, preferences: Preferences) -> io::Result<()> {
     if let Some(folder) = path.parent() {
         std::fs::create_dir_all(folder)?;
     }
-    let mut value = serde_json::json!({"version": 1, "appearance": preferences.appearance.key()});
+    let mut value = serde_json::json!({
+        "version": 1,
+        "appearance": preferences.appearance.key(),
+        "autoUpdate": preferences.auto_update,
+    });
     if let Some(locale) = preferences.locale {
         value["locale"] = locale.key().into();
     }
@@ -93,18 +103,22 @@ mod tests {
             appearance: Appearance::Light,
             locale: Some(Locale::En),
             pdf_folder: Some(r"D:\Scans\Ausweise".into()),
+            auto_update: false,
         };
         save_to(&path, light_english.clone()).unwrap();
         assert_eq!(load_from(&path).unwrap(), light_english);
         save_to(&path, Preferences::default()).unwrap();
         assert_eq!(load_from(&path).unwrap(), Preferences::default());
         assert_eq!(std::fs::read_to_string(&capture).unwrap(), "capture-preferences-untouched");
-        // Files from before languages existed still load.
+        // Files from before languages and automatic updates existed still
+        // load, with updates on.
         std::fs::write(&path, r#"{"version":1,"appearance":"light"}"#).unwrap();
         assert_eq!(
             load_from(&path).unwrap(),
-            Preferences { appearance: Appearance::Light, locale: None, pdf_folder: None }
+            Preferences { appearance: Appearance::Light, ..Preferences::default() }
         );
+        std::fs::write(&path, r#"{"version":1,"appearance":"dark","autoUpdate":"yes"}"#).unwrap();
+        assert!(load_from(&path).is_err());
         std::fs::write(&path, r#"{"version":1,"appearance":"unknown"}"#).unwrap();
         assert!(load_from(&path).is_err());
         std::fs::write(&path, r#"{"version":1,"appearance":"dark","locale":"xx"}"#).unwrap();

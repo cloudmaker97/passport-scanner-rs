@@ -588,7 +588,12 @@ impl App {
                 Updating::Checking => button(t.check_updates).style(quiet),
                 _ => button(t.check_updates).style(quiet).on_press(Message::CheckUpdate),
             };
-            settings = settings.push(action);
+            settings = settings.push(action).push(
+                toggler(self.auto_update)
+                    .label(t.auto_update)
+                    .on_toggle(Message::AutoUpdate)
+                    .size(18),
+            );
         }
         if let Some((notice, error)) = &self.notice {
             settings =
