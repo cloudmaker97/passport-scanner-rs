@@ -107,3 +107,13 @@ jobs:
             release/passport-scanner-*.zip \
             release/Passport-Scanner-User-Guide.pdf \
             source/LICENSE
+
+      # tag-release.yml creates drafts; only now, with the programs attached,
+      # may the release reach visitors and the desktop updater.
+      - name: Publish the release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          if [ "$(gh release view "$TAG" --repo "$GITHUB_REPOSITORY" --json isDraft --jq .isDraft)" = "true" ]; then
+            gh release edit "$TAG" --repo "$GITHUB_REPOSITORY" --draft=false --latest
+          fi

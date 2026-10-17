@@ -2,12 +2,14 @@ name: Tag release
 
 # When a push to main raises the workspace version in Cargo.toml: tags the
 # commit as v<version>, creates the release and builds it. Pushes that leave
-# the version at an already tagged one do nothing.
+# the version at an already released one do nothing. Can be started by hand,
+# e.g. to finish a release whose build failed.
 
 on:
   push:
     branches: [main]
     paths: [Cargo.toml]
+  workflow_dispatch:
 
 permissions:
   contents: write
@@ -22,7 +24,7 @@ jobs:
     runs-on: ubuntu-24.04
     outputs:
       tag: ${{ steps.version.outputs.tag }}
-      created: ${{ steps.release.outputs.created }}
+      build: ${{ steps.release.outputs.build }}
     steps:
       - uses: actions/checkout@v4
 
@@ -49,28 +51,43 @@ jobs:
             exit 1
           fi
 
-      # Normal releases, not pre-releases: the desktop updater asks for
-      # /releases/latest, which skips pre-releases.
-      - name: Create tag and release
+      # The release starts as a draft, which neither visitors nor the desktop
+      # updater see; release.yml publishes it once the programs are attached.
+      # A failed build leaves tag and draft behind, and running this again
+      # picks them up. Normal releases, not pre-releases: the updater asks
+      # for /releases/latest, which skips pre-releases.
+      - name: Create tag and draft release
         id: release
         env:
           GH_TOKEN: ${{ github.token }}
           TAG: ${{ steps.version.outputs.tag }}
         run: |
-          if gh release view "$TAG" --repo "$GITHUB_REPOSITORY" >/dev/null 2>&1 \
-             || git ls-remote --exit-code --tags origin "refs/tags/$TAG" >/dev/null; then
-            echo "$TAG already exists; nothing to release."
-            echo "created=false" >> "$GITHUB_OUTPUT"
+          draft=$(gh release view "$TAG" --repo "$GITHUB_REPOSITORY" --json isDraft --jq .isDraft 2>/dev/null || true)
+          if [ "$draft" = "false" ]; then
+            echo "$TAG is already released; nothing to do."
+            echo "build=false" >> "$GITHUB_OUTPUT"
             exit 0
           fi
-          gh release create "$TAG" --repo "$GITHUB_REPOSITORY" \
-            --target "$GITHUB_SHA" --title "$TAG" --generate-notes
-          echo "created=true" >> "$GITHUB_OUTPUT"
+
+          tagged=$(git ls-remote --tags origin "refs/tags/$TAG" | cut -f1)
+          if [ -z "$tagged" ]; then
+            git tag "$TAG" "$GITHUB_SHA"
+            git push origin "refs/tags/$TAG"
+          elif [ "$tagged" != "$GITHUB_SHA" ]; then
+            echo "::error::$TAG already points to $tagged, not $GITHUB_SHA; delete the tag and its draft release, then run this again"
+            exit 1
+          fi
+
+          if [ -z "$draft" ]; then
+            gh release create "$TAG" --repo "$GITHUB_REPOSITORY" \
+              --verify-tag --draft --title "$TAG" --generate-notes
+          fi
+          echo "build=true" >> "$GITHUB_OUTPUT"
 
   release:
-    name: Build and attach
+    name: Build and publish
     needs: tag
-    if: needs.tag.outputs.created == 'true'
+    if: needs.tag.outputs.build == 'true'
     uses: ./.github/workflows/release.yml
     with:
       tag: ${{ needs.tag.outputs.tag }}
