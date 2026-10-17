@@ -1,6 +1,6 @@
 //! Putting the pieces together: a transport, a camera, and a scan.
 //!
-//! Everything below the seams stays swappable — this crate only decides which
+//! Everything below the seams stays swappable - this crate only decides which
 //! implementations to use on which platform, and what a complete scan consists
 //! of.
 
@@ -37,7 +37,7 @@ pub type OpenScanner = Scanner<Transport, CameraSource>;
 ///
 /// # Errors
 /// [`Error::DeviceNotFound`] when nothing is attached, or a platform error if a
-/// channel cannot be opened — most often because another program holds the
+/// channel cannot be opened - most often because another program holds the
 /// camera.
 #[cfg(windows)]
 pub fn open() -> Result<(OpenScanner, Model)> {
@@ -191,8 +191,8 @@ impl passport_scanner_imaging::Stage for ReEncode {
 /// Take one capture under every fitted source on a scanner that is already
 /// open, and make the frames readable.
 ///
-/// The service holds one scanner for its whole run — it has to, because
-/// watching the platen means keeping the device — so it needs the body of a
+/// The service holds one scanner for its whole run - it has to, because
+/// watching the platen means keeping the device - so it needs the body of a
 /// scan without the opening and closing around it.
 ///
 /// # Errors
@@ -234,7 +234,7 @@ pub fn extension(frame: &Frame) -> &'static str {
 /// Read a document out of a set of captured frames.
 ///
 /// Returns an empty [`passport_scanner_core::Document`] when there is nothing to
-/// read — a driving licence without a machine-readable zone is a perfectly
+/// read - a driving licence without a machine-readable zone is a perfectly
 /// good scan, just not a readable one.
 ///
 /// # Errors

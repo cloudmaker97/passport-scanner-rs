@@ -40,7 +40,7 @@ impl ShadingMap {
 /// One stage of the image pipeline.
 ///
 /// Stages are composable and order-dependent; an application builds whatever chain it
-/// needs. Adding a correction — deskew, crop, denoise, colour management — means adding
+/// needs. Adding a correction - deskew, crop, denoise, colour management - means adding
 /// an implementation here and inserting it into the chain.
 pub trait ImageProcessor: Send {
     /// Human-readable name, used in logs and diagnostics.

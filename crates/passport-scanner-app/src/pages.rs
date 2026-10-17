@@ -52,7 +52,7 @@ impl Album {
     /// Place a capture, given an identifier to use if it starts a document.
     ///
     /// The identifier is passed in rather than generated here so that what
-    /// makes an id — a clock, a counter, a random source — stays the caller's
+    /// makes an id - a clock, a counter, a random source - stays the caller's
     /// business and this stays testable.
     pub fn place(&mut self, new_document: impl Into<String>) -> Placement {
         let new_document = new_document.into();

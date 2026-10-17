@@ -1,8 +1,8 @@
 //! The Passport Scanner interface, shared by the native window and the browser.
 //!
 //! It speaks only the wire contract in `passport-scanner-protocol`, through a
-//! [`Backend`]. Platform specifics — owning the scanner, saving files, browser
-//! storage — stay in the thin clients that construct [`App`].
+//! [`Backend`]. Platform specifics - owning the scanner, saving files, browser
+//! storage - stay in the thin clients that construct [`App`].
 
 pub mod backend;
 pub mod i18n;

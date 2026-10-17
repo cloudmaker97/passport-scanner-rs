@@ -1,7 +1,7 @@
 //! The browser client: the shared interface, talking to the local service over HTTP.
 //!
 //! Events arrive on the service's server-sent-event stream, commands go back as
-//! posts — the same wire contract the native window speaks in-process. `?demo`
+//! posts - the same wire contract the native window speaks in-process. `?demo`
 //! in the address runs against the simulated scanner instead.
 
 #[cfg(not(target_arch = "wasm32"))]

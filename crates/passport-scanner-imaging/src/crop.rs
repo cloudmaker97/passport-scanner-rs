@@ -2,7 +2,7 @@
 //!
 //! Most of a capture is not the document. The platen is larger than an ID-1
 //! card by some margin, and what surrounds the card is a dark moulding with
-//! ribs and screw heads in it — of no interest to a reader, and actively
+//! ribs and screw heads in it - of no interest to a reader, and actively
 //! unhelpful to everything downstream: it drags the tone measurements toward
 //! the platen, it is most of what a viewer has to look past, and it is most of
 //! the bytes.
@@ -26,7 +26,7 @@ pub const MARGIN: f32 = 0.01;
 /// column, not how many bright pixels it holds. That distinction is what makes
 /// this survive a corrected frame: flat-field correction multiplies the dim
 /// end of the platen by up to five, and with it the sensor noise there, so a
-/// row of bare platen can easily come out a tenth bright — enough to pass a
+/// row of bare platen can easily come out a tenth bright - enough to pass a
 /// count, nowhere near enough to make an unbroken run. A document gives a run
 /// the width of itself. Detached bright reflections below that main band are
 /// excluded, while gaps from print and dark portraits are retained.
@@ -156,8 +156,8 @@ fn largest_band(
 /// image when no plausible document was found.
 ///
 /// Falling back to the whole image rather than failing is deliberate. A scan
-/// of something this cannot locate — a dark passport cover, a document lying
-/// off the platen — is still a scan, and handing back an uncropped image is a
+/// of something this cannot locate - a dark passport cover, a document lying
+/// off the platen - is still a scan, and handing back an uncropped image is a
 /// better answer than handing back nothing.
 #[must_use]
 pub fn region(grey: &[u8], width: u32, height: u32, threshold: u8) -> Rect {
@@ -277,7 +277,7 @@ mod tests {
     fn scattered_noise_is_not_a_document() {
         // What flat-field correction does to the dim end of the platen: it
         // multiplies the noise there by up to five. Roughly a seventh of the
-        // pixels come out bright — enough to pass a count of them, nowhere
+        // pixels come out bright - enough to pass a count of them, nowhere
         // near enough to make an unbroken run.
         let mut px = vec![10u8; 400 * 300];
         speckle(&mut px, 400, Rect::whole(400, 300), 7);

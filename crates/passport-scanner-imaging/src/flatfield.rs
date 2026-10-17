@@ -6,12 +6,12 @@
 //! reference it implies runs from 48 to 240 across the frame, a factor of five
 //! between the brightest part of the platen and the dimmest. A card laid
 //! across that boundary is half well exposed and half not, and no single tone
-//! curve can rescue both halves — which is exactly what made the output here
+//! curve can rescue both halves - which is exactly what made the output here
 //! swing between legible and useless from one scan to the next.
 //!
 //! The shipped driver does this first, before anything else touches the image,
-//! and so does this. Everything downstream — the white balance, the levels,
-//! finding the document — assumes an evenly lit frame, and only this makes
+//! and so does this. Everything downstream - the white balance, the levels,
+//! finding the document - assumes an evenly lit frame, and only this makes
 //! that true.
 //!
 //! # The file
@@ -199,7 +199,7 @@ impl Shading {
     /// The capture is averaged down to the calibration grid rather than
     /// sampled at it. A single pixel carries the sensor's noise and a dust
     /// speck carries someone else's; sixteen averaged carry neither, and what
-    /// is being measured — how the lamp lights the platen — does not vary over
+    /// is being measured - how the lamp lights the platen - does not vary over
     /// sixteen pixels anyway.
     ///
     /// A point that reads as good as nothing is left uncalibrated rather than
@@ -247,7 +247,7 @@ impl Shading {
     /// Write the calibration back out in the vendor's own format.
     ///
     /// Byte for byte what [`Shading::parse`] reads, so a file written here is
-    /// one the shipped software could read too — including bottom-up rows and
+    /// one the shipped software could read too - including bottom-up rows and
     /// BGR channels in the file, top-down rows and RGB in memory.
     #[must_use]
     pub fn to_bytes(&self) -> Vec<u8> {

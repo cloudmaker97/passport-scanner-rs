@@ -4,15 +4,15 @@
 //! applied it. Measuring what it does to a real capture settled that it must
 //! not: the vendor's own white reference, `Calibration_General.jpg`, is
 //! uneven by ±15 % across the frame, while a card on this scanner comes off
-//! the sensor flat to ±2 % — 208…216 per channel over the whole card. The
+//! the sensor flat to ±2 % - 208…216 per channel over the whole card. The
 //! sensor is already correcting its own lens shading, from the LENC
 //! coefficients the EEPROM register tables write into it at the start of
 //! every scan, so by the time a frame reaches this code the work is done.
 //!
 //! Applying the file on top of that does not flatten anything. It pours the
-//! vendor's 15 % gradient back in, inverted, and — because each coefficient is
+//! vendor's 15 % gradient back in, inverted, and - because each coefficient is
 //! `240 / white_reference` and a laminated card is brighter than the matte
-//! sheet the reference was taken from — it multiplies the card past the
+//! sheet the reference was taken from - it multiplies the card past the
 //! ceiling: measured, 64 % of the document at exactly 255 before any tone
 //! stage had run. That is what made the output look washed out, lose the
 //! security print and take on a cast no later stage could remove.
@@ -103,8 +103,8 @@ fn normalise(value: u32, size: u32) -> f64 {
 impl Illumination {
     /// Measure the lighting across a capture from its own background.
     ///
-    /// Returns `None` when there is not enough background to measure — a frame
-    /// that is nearly all print, or one too small to fit through — in which
+    /// Returns `None` when there is not enough background to measure - a frame
+    /// that is nearly all print, or one too small to fit through - in which
     /// case the right thing to do is nothing.
     #[must_use]
     pub fn measure(image: &image::RgbImage) -> Option<Self> {
@@ -215,7 +215,7 @@ fn background_threshold(image: &image::RgbImage) -> Option<u8> {
 /// Solve a small symmetric system by Gauss–Jordan with partial pivoting.
 ///
 /// Returns `None` if it is singular, which for a capture means the background
-/// gave nothing to fit — the same answer as too few samples.
+/// gave nothing to fit - the same answer as too few samples.
 fn solve(mut a: [[f64; TERMS]; TERMS], mut b: [f64; TERMS]) -> Option<[f64; TERMS]> {
     for column in 0..TERMS {
         let pivot = (column..TERMS).max_by(|&i, &j| {

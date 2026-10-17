@@ -9,8 +9,8 @@
 //! and selector, which is why [`passport_scanner_core::VendorTransport`] sits between
 //! them: the layer above never learns which operating system it is on.
 //!
-//! Unsafe code is confined to this crate. [`ksp`] and [`path`] — the byte
-//! layout and the path parsing, which are where mistakes hide — are pure and
+//! Unsafe code is confined to this crate. [`ksp`] and [`path`] - the byte
+//! layout and the path parsing, which are where mistakes hide - are pure and
 //! tested on any host.
 
 pub mod cameracontrol;

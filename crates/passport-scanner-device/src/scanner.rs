@@ -16,14 +16,14 @@ use std::{thread::sleep, time::Duration};
 /// How long to let the image settle after changing illumination.
 ///
 /// The hardware gives no ready signal. The shipped driver waits a fixed delay
-/// taken from its configuration — `DelayTime-5M-<source>`, 400 ms for both
-/// lamps on the reference unit — and then takes the next frame the stream
+/// taken from its configuration - `DelayTime-5M-<source>`, 400 ms for both
+/// lamps on the reference unit - and then takes the next frame the stream
 /// delivers. That figure is now read from its configuration rather than
 /// guessed at; see [`crate::settings`]. This is the fallback for a machine
 /// that has no vendor install to read.
 ///
 /// [`crate::steady`] recognises the new picture rather than relying on the
-/// wait, so a shorter one does not produce a wrong image — swept over real
+/// wait, so a shorter one does not produce a wrong image - swept over real
 /// scans, 400, 100, 50 and 0 ms all returned the same tonal spread. But the
 /// lamp does take time to reach its working output, and a frame taken before
 /// it has is a frame the calibration does not describe. Matching the shipped
@@ -31,7 +31,7 @@ use std::{thread::sleep, time::Duration};
 pub const DEFAULT_SETTLE: Duration = Duration::from_millis(400);
 
 /// Value that frees the imaging path. Without it the stream yields nothing at
-/// all — two-byte frames — no matter which lamp is lit.
+/// all - two-byte frames - no matter which lamp is lit.
 pub const ENABLE: u8 = 0x01;
 /// Value that shuts the imaging path again.
 pub const DISABLE: u8 = 0x00;
@@ -49,7 +49,7 @@ pub const EEPROM_CHUNK: usize = 32;
 
 /// Frames to throw away when the stream first comes up.
 ///
-/// The first frames out of a cold stream are not of anything — the sensor is
+/// The first frames out of a cold stream are not of anything - the sensor is
 /// still coming to a working exposure. Within a scan, frames are not counted
 /// but recognised; see [`crate::steady`].
 pub const FLUSH_FRAMES: usize = 2;
@@ -321,7 +321,7 @@ impl<T: VendorTransport, C: FrameSource> Scanner<T, C> {
         self.calibration = self.read_calibration()?;
 
         // The common table takes the sensor out of whatever mode it powered up
-        // in — manual exposure and gain, fixed white balance, ISP configured.
+        // in - manual exposure and gain, fixed white balance, ISP configured.
         // Without it the per-source tables land on a sensor that ignores them.
         let common = self.calibration.common.clone();
         self.write_registers(&common)?;
@@ -384,7 +384,7 @@ impl<T: VendorTransport, C: FrameSource> Scanner<T, C> {
         }
 
         // The per-unit trim from EEPROM goes on last, exactly as the shipped
-        // driver applies it — it overrides the value the table just set.
+        // driver applies it - it overrides the value the table just set.
         let trim = match source {
             LightSource::White => self.calibration.white_exposure,
             LightSource::Infrared => self.calibration.infrared_gain,
@@ -398,8 +398,8 @@ impl<T: VendorTransport, C: FrameSource> Scanner<T, C> {
 
         // The image controls go on last, after every register write, so the
         // capture stack is not handed a brighter setting afterwards. A source
-        // without controls is fine — the picture is then whatever the stack
-        // chose — so this must not fail a capture.
+        // without controls is fine - the picture is then whatever the stack
+        // chose - so this must not fail a capture.
         if source == LightSource::White {
             for (name, value) in self.white_controls.clone() {
                 let _ = self.capture.set_control(&name, value);
@@ -469,7 +469,7 @@ impl<T: VendorTransport, C: FrameSource> Scanner<T, C> {
         // A freshly opened capture handle, every scan. What that is for is
         // in FrameSource::reopen; in short, the first capture on a handle is
         // exposed correctly and the ones after it are not. Not fatal if the
-        // stack cannot do it — a source with nothing to restore says so by
+        // stack cannot do it - a source with nothing to restore says so by
         // doing nothing.
         let mut frames = Vec::with_capacity(sources.len());
         let outcome: Result<()> = (|| {
@@ -498,7 +498,7 @@ impl<T: VendorTransport, C: FrameSource> Scanner<T, C> {
         //
         // Stopping it matters more than it looks. Left running between scans,
         // the first scan after opening the device came out right and every one
-        // after it came out overexposed — measured over ten runs, the first
+        // after it came out overexposed - measured over ten runs, the first
         // had 57 per cent of the frame dark and the other nine had 15 per
         // cent, identically. Closing and reopening the whole device between
         // runs fixed it; reinitialising only the device side did not. So what

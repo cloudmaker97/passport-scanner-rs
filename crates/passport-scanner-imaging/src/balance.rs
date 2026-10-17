@@ -2,7 +2,7 @@
 //!
 //! Neither lamp is white. The visible one is a warm LED behind a diffuser and
 //! the infrared one is a single wavelength, so a card comes off the sensor
-//! tinted — green under one, red under the other. Nothing on the device
+//! tinted - green under one, red under the other. Nothing on the device
 //! corrects for it: the sensor's own white-balance registers are written from
 //! the calibration table and left alone.
 //!

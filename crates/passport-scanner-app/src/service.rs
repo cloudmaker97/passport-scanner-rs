@@ -307,7 +307,7 @@ enum Ask {
 ///
 /// The outer loop is about the device coming and going: unplug the scanner and
 /// this reports it, then keeps looking until it is back. The inner loop is the
-/// working state — poll, decide, scan — and any device error drops out of it
+/// working state - poll, decide, scan - and any device error drops out of it
 /// into the outer one, which is the only recovery that makes sense once the
 /// thing you are talking to has stopped answering.
 #[cfg(windows)]
@@ -608,8 +608,8 @@ fn watch(
                 continue;
             } else {
                 // A card is still settling when it first trips a sensor. The
-                // shipped driver waits FirstDelay here — half a second on the
-                // reference unit — before committing to a scan.
+                // shipped driver waits FirstDelay here - half a second on the
+                // reference unit - before committing to a scan.
                 std::thread::sleep(settings.delays.first);
             }
 

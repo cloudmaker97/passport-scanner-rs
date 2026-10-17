@@ -1,7 +1,7 @@
 //! Write out what each imaging stage does to a capture, one file per stage.
 //!
-//! When a result looks wrong there are two questions — which stage did it, and
-//! would it look better without that stage — and a pipeline that only emits its
+//! When a result looks wrong there are two questions - which stage did it, and
+//! would it look better without that stage - and a pipeline that only emits its
 //! final answer makes both unanswerable. This runs the stages one at a time
 //! over a raw capture and saves the frame after each, so the two can be looked
 //! at side by side.

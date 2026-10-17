@@ -46,7 +46,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         );
 
         match scanner.document_present()? {
-            DocumentPresence::Absent => println!("\nNothing on the platen — scanning anyway."),
+            DocumentPresence::Absent => println!("\nNothing on the platen - scanning anyway."),
             p => println!("\nDocument detected ({p:?})."),
         }
 

@@ -3,7 +3,7 @@
 //! Three faults at once, because on this scanner they are one problem:
 //!
 //! - **Exposure.** A card lit by its own lamp arrives as a narrow band of
-//!   bright tones — paper around 210, print not far below — and the device
+//!   bright tones - paper around 210, print not far below - and the device
 //!   carries no exposure control to open that up with. Here the paper is put
 //!   at [`PAPER`] and the print at black.
 //! - **A cast at the white end.** Neither lamp is white, so the paper comes
@@ -26,15 +26,15 @@ use image::RgbImage;
 /// What a document's paper is put at.
 ///
 /// Short of 255 on purpose. A document's background is not the brightest
-/// thing it carries — a hologram, a laminate highlight or a reflective
-/// security print sits above it — and leaving a little room over the paper is
+/// thing it carries - a hologram, a laminate highlight or a reflective
+/// security print sits above it - and leaving a little room over the paper is
 /// what keeps those from flattening into one white shape.
 pub const PAPER: f32 = 252.0;
 
 /// Furthest a channel's midtones may be bent to neutralise them.
 ///
 /// A limit rather than a free fit: a genuinely coloured document should come
-/// out coloured, and only a cast — small, and the same everywhere — should be
+/// out coloured, and only a cast - small, and the same everywhere - should be
 /// taken off.
 pub const MAX_NEUTRAL_GAMMA: f32 = 1.35;
 
@@ -65,7 +65,7 @@ pub struct DocumentTone {
 impl Default for DocumentTone {
     fn default() -> Self {
         // A card is mostly its own background, so the print is a small tail
-        // and the top is cut very little — cut more and the print goes too.
+        // and the top is cut very little - cut more and the print goes too.
         Self { shadow: 0.003, highlight: 0.005, inset: INSET, neutralise: true }
     }
 }
@@ -118,8 +118,8 @@ impl DocumentTone {
     ///
     /// Measured over the pixels that ought to be neutral and are not quite:
     /// those already close to grey, away from both ends. Paper and print are
-    /// excluded by the luminance window and anything genuinely coloured — a
-    /// blue crest, a green guilloche — by the saturation one, so what is left
+    /// excluded by the luminance window and anything genuinely coloured - a
+    /// blue crest, a green guilloche - by the saturation one, so what is left
     /// is the cast and only the cast.
     ///
     /// Returns ones when there is too little to go on, which leaves the frame
@@ -232,7 +232,7 @@ mod tests {
         RgbImage::from_fn(400, 300, |_, y| {
             let base = if y % 20 < 3 { 90 } else { 210 };
             // Additive, so it counts for more against the print than the
-            // paper — exactly the fault this stage exists to remove.
+            // paper - exactly the fault this stage exists to remove.
             let green = (base + cast).clamp(0, 255) as u8;
             Rgb([base as u8, green, base as u8])
         })

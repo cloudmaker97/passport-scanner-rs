@@ -1,7 +1,7 @@
 //! Frame capture over the platform's camera stack.
 //!
 //! The scanner streams as an ordinary UVC camera, so capture uses the operating
-//! system's own camera stack — Media Foundation on Windows, V4L2 on Linux —
+//! system's own camera stack - Media Foundation on Windows, V4L2 on Linux -
 //! rather than anything device-specific. Only the vendor control channel needs
 //! to know what this hardware is.
 //!

@@ -9,8 +9,8 @@
 //! - [`MrzReader`] joins them to an OCR engine and
 //!   [`passport_scanner_mrz`]'s parser.
 //!
-//! Keeping the first two pure means the awkward decisions — what counts as the
-//! document, what counts as a zone line — are tested without a camera or an
+//! Keeping the first two pure means the awkward decisions - what counts as the
+//! document, what counts as a zone line - are tested without a camera or an
 //! engine anywhere near them.
 
 #![forbid(unsafe_code)]
@@ -84,7 +84,7 @@ impl<E: Engine> MrzReader<E> {
     /// Read the zone, keeping what the engine actually said.
     ///
     /// When a zone that is plainly legible does not come out, the question is
-    /// always which step lost it — the engine, or the repair that follows it.
+    /// always which step lost it - the engine, or the repair that follows it.
     /// Returning both answers it instead of leaving it to be guessed at.
     ///
     /// # Errors

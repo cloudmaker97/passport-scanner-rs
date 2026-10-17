@@ -1,7 +1,7 @@
 //! Measure how this unit lights its platen, and save the result.
 //!
-//! The lamp does not light the platen evenly — on the reference unit by a
-//! factor of five across the frame — and no tone curve can undo that, because
+//! The lamp does not light the platen evenly - on the reference unit by a
+//! factor of five across the frame - and no tone curve can undo that, because
 //! the two ends of the frame need different ones. What fixes it is a per-pixel
 //! map of the unevenness, measured once per unit and applied to every capture
 //! afterwards. This measures it.
@@ -15,7 +15,7 @@
 //! The paper is the reference: whatever it returns is what "white" looks like
 //! at each point, and the correction is what turns that into one number
 //! everywhere. Use matt paper, unprinted on both sides, and make sure it
-//! covers the platen corner to corner — an uncovered patch calibrates as
+//! covers the platen corner to corner - an uncovered patch calibrates as
 //! though the lamp were dark there.
 //!
 //! The vendor's own calibration is never written over. What is produced here
@@ -36,7 +36,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     let (mut scanner, model) = passport_scanner_app::open()?;
     let product = model.product_id();
-    println!("{} — measuring the platen under the visible lamp\n", model.name());
+    println!("{} - measuring the platen under the visible lamp\n", model.name());
 
     // The reference has to be the sensor's own view, so nothing is corrected
     // or cropped on the way here.

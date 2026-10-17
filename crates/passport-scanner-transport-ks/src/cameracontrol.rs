@@ -4,7 +4,7 @@
 //! through different property sets. The brightness, contrast and gamma a
 //! capture stack lists are *video processing* properties; exposure and iris
 //! are *camera control* ones, and a stack that does not probe the second set
-//! reports no exposure at all — which is how a device that plainly has one can
+//! reports no exposure at all - which is how a device that plainly has one can
 //! look as though it has not.
 //!
 //! The shipped configuration names `IRISValue` per illumination, so the
@@ -65,7 +65,7 @@ pub const FLAG_MANUAL: u32 = 0x0002;
 const TYPE_GET: u32 = 0x0000_0001;
 /// `KSPROPERTY_TYPE_SET`.
 const TYPE_SET: u32 = 0x0000_0002;
-/// `KSPROPERTY_TYPE_BASICSUPPORT` — asks for the range rather than the value.
+/// `KSPROPERTY_TYPE_BASICSUPPORT` - asks for the range rather than the value.
 pub const TYPE_BASICSUPPORT: u32 = 0x0000_0200;
 
 /// Size of a `KSPROPERTY_CAMERACONTROL_S`: the identifier, then value, flags

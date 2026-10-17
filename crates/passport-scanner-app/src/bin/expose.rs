@@ -1,7 +1,7 @@
 //! Sweep one of the capture stack's image controls through the real scan path.
 //!
-//! The stack runs its own exposure loop, so these controls — not the sensor's
-//! exposure register — settle how a frame comes out. Sweeping them inside the
+//! The stack runs its own exposure loop, so these controls - not the sensor's
+//! exposure register - settle how a frame comes out. Sweeping them inside the
 //! actual scan sequence matters: doing it alongside gives a different answer,
 //! because the sequence also loads the unit's register tables.
 //!
@@ -27,7 +27,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         let hi: i64 = std::env::args().nth(3).and_then(|v| v.parse().ok()).unwrap_or(40);
 
         let (mut scanner, model) = passport_scanner_app::open()?;
-        println!("{} — sweeping {control} from {lo} to {hi}\n", model.name());
+        println!("{} - sweeping {control} from {lo} to {hi}\n", model.name());
         std::fs::create_dir_all("scans/sweep")?;
 
         println!(
@@ -75,7 +75,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
 struct Lit {
     /// Mean of the lit pixels.
     mean: f32,
-    /// Standard deviation of the lit pixels — how much tone there is to read.
+    /// Standard deviation of the lit pixels - how much tone there is to read.
     spread: f32,
     /// Fraction of lit pixels at the ceiling.
     near_max: f32,

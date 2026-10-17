@@ -2,7 +2,7 @@
 //!
 //! Timings, lamp behaviour and camera properties are not constants of the
 //! hardware. They are configuration, and the vendor ships them in
-//! `Camera.ini` beside its application — one section per model, selected by
+//! `Camera.ini` beside its application - one section per model, selected by
 //! USB vendor and product id. Guessing at them from behaviour, which is what
 //! this code did for a while, produces numbers that are nearly right and
 //! occasionally wrong; reading them produces the numbers the device was built
@@ -25,7 +25,7 @@ pub const CONFIG_FILE: &str = "Camera.ini";
 
 /// How long to let the image settle after changing illumination.
 ///
-/// `DelayTime-5M-<source>` — 400 ms for white and infrared on this model,
+/// `DelayTime-5M-<source>` - 400 ms for white and infrared on this model,
 /// 2000 ms for ultraviolet. Measured against the running driver twice, at
 /// 400 ms and 401 ms, which is how this was pinned before the file was read.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -38,13 +38,13 @@ pub struct Delays {
     pub ultraviolet: Duration,
     /// After a document is first detected, before reading the sensors again.
     ///
-    /// `FirstDelay` — 500 ms. A card is still moving when it first crosses a
+    /// `FirstDelay` - 500 ms. A card is still moving when it first crosses a
     /// sensor, and this is how long the shipped driver waits before deciding
     /// anything about it.
     pub first: Duration,
-    /// How long the buzzer sounds. `BuzzerDelay` — 300 ms.
+    /// How long the buzzer sounds. `BuzzerDelay` - 300 ms.
     pub buzzer: Duration,
-    /// How long to wait for a frame before giving up. `TimeOut` — 6000 ms.
+    /// How long to wait for a frame before giving up. `TimeOut` - 6000 ms.
     pub timeout: Duration,
 }
 
@@ -73,7 +73,7 @@ pub enum CameraMode {
 /// The capture stack's image controls, as the shipped driver sets them.
 ///
 /// `CameraProp-5M-<source>`: seven auto-mode flags, then seven values, in the
-/// order the file's own comment gives — iris, gamma, brightness, saturation,
+/// order the file's own comment gives - iris, gamma, brightness, saturation,
 /// sharpness, hue, backlight compensation.
 ///
 /// Not every one of these is a control this device actually carries, and the

@@ -23,7 +23,7 @@ use windows_sys::{
     core::GUID,
 };
 
-/// `KSCATEGORY_CAPTURE` — the interface class a UVC capture filter registers
+/// `KSCATEGORY_CAPTURE` - the interface class a UVC capture filter registers
 /// under, and where the scanner's extension unit lives.
 const KSCATEGORY_CAPTURE: GUID = GUID {
     data1: 0x65E8_773D,
@@ -173,7 +173,7 @@ impl KsTransport {
     /// Open the capture filter at `device_path`.
     ///
     /// # Errors
-    /// Fails if the path cannot be opened — usually because another process
+    /// Fails if the path cannot be opened - usually because another process
     /// holds the camera exclusively.
     pub fn open(device_path: &str) -> Result<Self> {
         let wide: Vec<u16> = device_path.encode_utf16().chain(std::iter::once(0)).collect();
@@ -331,7 +331,7 @@ impl VendorTransport for KsTransport {
     /// The extension unit answers in place, but only after it has been told
     /// what is being asked: the query goes in with a `SET`, and a following
     /// `GET` collects the reply. Issuing only the `GET` returns whatever the
-    /// unit happened to hold from the previous exchange — which looks like a
+    /// unit happened to hold from the previous exchange - which looks like a
     /// working read until the values stop changing.
     fn get(&mut self, selector: Selector, buffer: &mut [u8]) -> Result<()> {
         let mut data = [0u8; XU_DATA_LEN];

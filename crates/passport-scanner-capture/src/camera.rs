@@ -128,7 +128,7 @@ impl CameraSource {
     /// Needed once per scan, which is not obvious and was not cheap to find.
     /// Measured over ten runs against one unmoved document, the first capture
     /// after opening the device was exposed correctly and every capture after
-    /// it was not — identically so, 57 per cent of the frame dark against 15
+    /// it was not - identically so, 57 per cent of the frame dark against 15
     /// per cent, which rules out timing. Closing and reopening the whole
     /// device between runs fixed it. Reinitialising only the scanner side did
     /// not, and neither did stopping and restarting the stream. What is left

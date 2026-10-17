@@ -32,7 +32,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
             image::load_from_memory(&frame.data).ok().map(|i| i.to_rgb8())
         }
 
-        /// How far apart the lit tones sit — what there is to read.
+        /// How far apart the lit tones sit - what there is to read.
         fn spread(image: &RgbImage) -> u8 {
             let mut histogram = [0u64; 256];
             for p in image.pixels() {

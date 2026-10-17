@@ -379,7 +379,7 @@ impl App {
                     .push(text(t.pdf_image_count(document.image_count())).size(11).color(c.muted));
             }
         } else {
-            data = data.push(text("—").color(c.muted));
+            data = data.push(text("-").color(c.muted));
         }
         container(scrollable(data)).width(318).padding(20).height(Fill).into()
     }

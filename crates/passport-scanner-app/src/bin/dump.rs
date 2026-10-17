@@ -50,7 +50,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         scanner.initialise()?;
         println!(
             "
-common table (first) — AEC/AGC and mode registers:"
+common table (first) - AEC/AGC and mode registers:"
         );
         for w in &scanner.calibration().common {
             if matches!(w.register, 0x3500..=0x350C | 0x3406 | 0x5001 | 0x5003 | 0x3A00..=0x3A1F) {

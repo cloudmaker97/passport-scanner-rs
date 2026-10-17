@@ -83,7 +83,7 @@ impl Frame {
     }
 }
 
-/// A source of image frames — a live camera, or a recorded capture for testing.
+/// A source of image frames - a live camera, or a recorded capture for testing.
 ///
 /// The scan sequence needs exactly two things from a capture backend: the ability to
 /// start and stop streaming, and the ability to take the next frame after the
@@ -119,7 +119,7 @@ pub trait FrameSource: Send {
     /// Some capture stacks configure a device on open in a way that does not
     /// survive the first stream they serve, and a source that knows this about
     /// itself says so here. The default does nothing, which is right for a
-    /// source with no such problem — a recorded capture, for instance.
+    /// source with no such problem - a recorded capture, for instance.
     ///
     /// # Errors
     /// Fails if the source cannot be restored.

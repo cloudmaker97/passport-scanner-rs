@@ -83,10 +83,10 @@ pub trait ScannerDevice: Send {
 pub enum DocumentPresence {
     /// Nothing on the platen.
     Absent,
-    /// Only the first sensor is covered — typically a card, which is too small to reach
+    /// Only the first sensor is covered - typically a card, which is too small to reach
     /// the second.
     Partial,
-    /// Both sensors are covered — typically a passport page.
+    /// Both sensors are covered - typically a passport page.
     Full,
 }
 

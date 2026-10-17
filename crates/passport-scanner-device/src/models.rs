@@ -10,9 +10,9 @@ use passport_scanner_core::{DeviceDescriptor, LightSource};
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 #[non_exhaustive]
 pub enum Model {
-    /// X50 — white only.
+    /// X50 - white only.
     X50,
-    /// X100 — white and infrared.
+    /// X100 - white and infrared.
     X100,
     /// X150.
     X150,
@@ -22,7 +22,7 @@ pub enum Model {
     XCube,
     /// X-Cube 1000.
     XCube1000,
-    /// X-Mini 2000 — white and infrared, 5 MP. The reference device for this project.
+    /// X-Mini 2000 - white and infrared, 5 MP. The reference device for this project.
     XMini2000,
     /// X60.
     X60,
@@ -30,7 +30,7 @@ pub enum Model {
     X160,
     /// X280.
     X280,
-    /// X-Mini NFC — adds contactless chip reading.
+    /// X-Mini NFC - adds contactless chip reading.
     XMiniNfc,
 }
 

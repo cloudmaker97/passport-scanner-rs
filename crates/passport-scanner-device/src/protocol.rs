@@ -130,7 +130,7 @@ pub const OP_EEPROM_READ: u8 = 0x04;
 ///
 /// The address is little-endian in bytes 1 and 2, behind the opcode. The reply
 /// comes back in the same buffer with the opcode still in byte 0 and the EEPROM
-/// contents from `address` onward in byte 1 and beyond — so one exchange reads
+/// contents from `address` onward in byte 1 and beyond - so one exchange reads
 /// a whole run, not a single byte.
 ///
 /// The shipped driver reads byte by byte and keeps only the first, which is why
@@ -160,7 +160,7 @@ mod tests {
 
     #[test]
     fn control_payload_matches_observed_bytes() {
-        // "f201" — infrared on — as the original driver writes it.
+        // "f201" - infrared on - as the original driver writes it.
         let p = control_payload(key::IR_LAMP, key::ON, 32);
         assert_eq!(&p[..2], &[0xF2, 0x01]);
         assert_eq!(p.len(), 32);
@@ -169,7 +169,7 @@ mod tests {
 
     #[test]
     fn sensor_payload_matches_observed_bytes() {
-        // "350B0040" — infrared gain — straight from the scan trace.
+        // "350B0040" - infrared gain - straight from the scan trace.
         let p = sensor_payload(0x350B, 0x0040, 32);
         assert_eq!(&p[..4], &[0x35, 0x0B, 0x00, 0x40]);
     }

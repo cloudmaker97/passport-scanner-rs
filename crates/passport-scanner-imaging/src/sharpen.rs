@@ -15,7 +15,7 @@ use image::RgbImage;
 /// three channels, rather than each channel being sharpened against itself.
 /// Done per channel, an edge between two slightly different colours has each
 /// channel pushed a different way, and what comes out is a coloured fringe
-/// along every line of text — which on a document scan reads as the whole
+/// along every line of text - which on a document scan reads as the whole
 /// image being off-colour. Brightness is also the only thing sharpening is
 /// for: it restores edges the lens and the codec softened, and those are
 /// losses of detail, not of hue.
@@ -34,7 +34,7 @@ pub fn unsharp(src: &RgbImage, amount: f32) -> RgbImage {
 /// Radius decides what *size* of detail is restored, and one pixel is the
 /// wrong size here. At 2592 pixels across an 86 mm card the stroke of a line
 /// of print is three or four pixels wide, so a three-by-three mask sharpens
-/// the grain inside a stroke rather than the stroke itself — which is why
+/// the grain inside a stroke rather than the stroke itself - which is why
 /// output off this scanner read as soft however much amount was added. A
 /// radius of two covers the stroke, and that is what the eye calls focus.
 ///

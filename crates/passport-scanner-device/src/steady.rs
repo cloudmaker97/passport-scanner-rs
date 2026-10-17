@@ -7,15 +7,15 @@
 //! the stream runs is not constant.
 //!
 //! So ask the frame instead of counting. A JPEG of a card under white light
-//! and the same card under infrared are not the same size — on the reference
-//! unit they differ by about a quarter — and consecutive frames of the same
+//! and the same card under infrared are not the same size - on the reference
+//! unit they differ by about a quarter - and consecutive frames of the same
 //! steady picture are within a per cent or two of each other. That is enough
 //! to recognise the change without decoding anything.
 //!
 //! Size is not enough on its own, though, and the reason is timing: a stream
 //! that has been running hands back buffered frames instantly, and two
 //! buffered frames of the same stale picture are as steady as two fresh ones.
-//! So how long a frame took to arrive is part of the test — see
+//! So how long a frame took to arrive is part of the test - see
 //! [`was_buffered`].
 
 use std::time::Duration;
@@ -38,7 +38,7 @@ const _: () = assert!(STEADY < CHANGED);
 ///
 /// A five-megapixel frame takes about a quarter of a second to come over the
 /// wire, so one that arrives in a fraction of that was sitting in the stream's
-/// buffer — which means it was exposed before whatever this scan just changed.
+/// buffer - which means it was exposed before whatever this scan just changed.
 /// Eighty milliseconds is well under a real frame interval and far above the
 /// no time at all a buffered one takes.
 ///
@@ -88,8 +88,8 @@ pub fn difference(a: usize, b: usize) -> f64 {
 /// - `size` is the frame just taken.
 /// - `previous` is the one before it, if any; without it nothing can be said
 ///   about whether the picture has stopped moving.
-/// - `before` is the last frame from before the change. Without one — the
-///   first capture of a run — there is nothing to have changed from, so only
+/// - `before` is the last frame from before the change. Without one - the
+///   first capture of a run - there is nothing to have changed from, so only
 ///   steadiness is required.
 #[must_use]
 pub fn is_settled(size: usize, previous: Option<usize>, before: Option<usize>) -> bool {

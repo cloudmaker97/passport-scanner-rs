@@ -33,7 +33,7 @@ pub const JPEG_QUALITY: u8 = 92;
 ///
 /// A tenth each side, so what is measured is the middle four fifths. By the
 /// time those stages run the frame has been cut down to the document, but a
-/// card lying slightly askew still leaves slivers of platen in the corners —
+/// card lying slightly askew still leaves slivers of platen in the corners -
 /// and a shadow point taken from those is taken from the platen, not from the
 /// print. Measuring an inset box and applying the result to the whole frame
 /// avoids that without having to find the card a second time.
@@ -205,7 +205,7 @@ pub struct AutoLevels {
     /// A document is dark marks on light paper, and both of those are meant to
     /// be neutral. Stretching the three channels together preserves whatever
     /// cast is already there; stretching each to its own ends removes it at
-    /// both ends at once — which is the only thing that takes out a cast that
+    /// both ends at once - which is the only thing that takes out a cast that
     /// sits in the shadows but not in the paper.
     ///
     /// That kind of cast is not hypothetical here. Stray light inside the
@@ -289,7 +289,7 @@ impl Default for Sharpen {
     fn default() -> Self {
         // At 2592 pixels across an 86 mm card a stroke of print is three or
         // four pixels wide, so a one-pixel radius sharpens the grain inside
-        // the stroke instead of the stroke — which is why output off this
+        // the stroke instead of the stroke - which is why output off this
         // scanner read as soft whatever the amount was. Two covers the
         // stroke; the amount is then enough to make small print crisp and
         // short of the halos that make a scan look processed.
@@ -332,7 +332,7 @@ impl Stage for Flatten {
 /// to straddle each other:
 ///
 /// - The flat-field correction is of the whole sensor, so it can only be
-///   applied to a whole frame — before any cropping.
+///   applied to a whole frame - before any cropping.
 /// - Where the document is has to be *measured* before that correction, not
 ///   after. The correction multiplies the dim end of the platen by up to five
 ///   and takes the contrast between platen and card with it; measured first,
@@ -373,7 +373,7 @@ impl Enhance {
     ///
     /// **The calibration replaces the white balance.** Each coefficient is
     /// `TARGET / white_reference` *per channel*, so applying it has already
-    /// measured and set the white — three separate channels, corrected
+    /// measured and set the white - three separate channels, corrected
     /// separately. Measuring it again afterwards is measuring an image that
     /// has already been measured, and the second answer is worse than the
     /// first because it has less to go on.
@@ -389,7 +389,7 @@ impl Enhance {
     /// none for infrared. Using the visible one there was tried: it takes the
     /// bottom off the frame, machine-readable zone and all, and flattens what
     /// contrast the engraving has. Infrared is the one source that does not
-    /// need it anyway — the engraving absorbs it so strongly that uneven
+    /// need it anyway - the engraving absorbs it so strongly that uneven
     /// lighting barely shows.
     #[must_use]
     pub fn for_documents_with(shading: Option<Shading>, source: LightSource) -> Self {
@@ -461,7 +461,7 @@ impl Enhance {
 /// Where the document is in a frame the sensor has just delivered.
 ///
 /// Falls back to the whole frame when there is no dark surround to measure
-/// against — a document filling the platen is a perfectly good scan.
+/// against - a document filling the platen is a perfectly good scan.
 fn document_region(image: &RgbImage) -> Rect {
     let (w, h) = image.dimensions();
     let mut histogram = [0u64; 256];

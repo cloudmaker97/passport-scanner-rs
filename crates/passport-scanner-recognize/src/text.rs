@@ -1,7 +1,7 @@
 //! Turning whatever the OCR engine said into machine-readable-zone lines.
 //!
-//! Pure string work, so the awkward part — deciding what counts as a zone line
-//! — is testable without an engine installed.
+//! Pure string work, so the awkward part - deciding what counts as a zone line
+//! - is testable without an engine installed.
 
 /// The line lengths ICAO 9303 defines.
 const LENGTHS: [usize; 3] = [30, 36, 44];
@@ -265,7 +265,7 @@ fn recover_td1_padding(raw: &[String]) -> Option<Vec<String>> {
 /// all, without committing to it being correct.
 ///
 /// Case is *not* normalised here, deliberately. A zone contains no lowercase,
-/// so a line full of it is ordinary print rather than a zone — folding case
+/// so a line full of it is ordinary print rather than a zone - folding case
 /// first would score a sentence as a near-perfect zone.
 #[must_use]
 pub fn zone_likeness(line: &str) -> f32 {

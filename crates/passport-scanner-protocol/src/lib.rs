@@ -62,7 +62,7 @@ pub struct Device {
 
 /// One captured image.
 ///
-/// Pixels never travel inside a message. `url` points at them — a `data:` URL for
+/// Pixels never travel inside a message. `url` points at them - a `data:` URL for
 /// something small, otherwise an address the host serves, so a large frame does
 /// not have to be base64-encoded through the channel.
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
@@ -137,8 +137,8 @@ pub struct Span {
 /// An identity card has two, and only one of them carries the
 /// machine-readable zone, so a single capture is half a document. Which face
 /// is which is decided by the order they were taken in: the first capture of
-/// a document is its front. That is a convention rather than a measurement —
-/// nothing on a card says which side it is — but it matches how anyone
+/// a document is its front. That is a convention rather than a measurement -
+/// nothing on a card says which side it is - but it matches how anyone
 /// actually puts one on a platen.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]

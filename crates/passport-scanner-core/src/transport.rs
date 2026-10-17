@@ -9,7 +9,7 @@ use crate::error::Result;
 
 /// A one-byte vendor command selector.
 ///
-/// Named constants live with the concrete device, not here — this crate stays free of
+/// Named constants live with the concrete device, not here - this crate stays free of
 /// model-specific knowledge.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, PartialOrd, Ord)]
 pub struct Selector(pub u8);

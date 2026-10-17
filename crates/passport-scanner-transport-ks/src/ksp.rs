@@ -1,7 +1,7 @@
 //! The request structure sent with `IOCTL_KS_PROPERTY`.
 //!
 //! This module is pure byte layout and has no platform dependency, so the
-//! encoding — the part that is easy to get silently wrong — is testable
+//! encoding - the part that is easy to get silently wrong - is testable
 //! anywhere, including against bytes captured from the shipped driver.
 
 /// `IOCTL_KS_PROPERTY`, observed carrying every vendor command of the original
@@ -59,7 +59,7 @@ pub fn register_write_packets(selector: u8, payload: &[u8]) -> Option<[[u8; XU_D
 pub const TYPE_GET: u32 = 0x0000_0001;
 /// `KSPROPERTY_TYPE_SET`.
 pub const TYPE_SET: u32 = 0x0000_0002;
-/// `KSPROPERTY_TYPE_TOPOLOGY` — addresses a node rather than the filter.
+/// `KSPROPERTY_TYPE_TOPOLOGY` - addresses a node rather than the filter.
 pub const TYPE_TOPOLOGY: u32 = 0x1000_0000;
 
 /// A Windows GUID in its native field layout.

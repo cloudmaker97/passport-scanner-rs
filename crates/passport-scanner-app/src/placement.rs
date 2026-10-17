@@ -6,9 +6,9 @@
 //! reading scans it again on the next poll. So the signal has to be held to
 //! two conditions:
 //!
-//! - it has settled — the same reading twice running, which at a two-hundred
+//! - it has settled - the same reading twice running, which at a two-hundred
 //!   millisecond poll is a fifth of a second of stillness;
-//! - and it is new — nothing is scanned again until the platen has been seen
+//! - and it is new - nothing is scanned again until the platen has been seen
 //!   empty, which is what separates one document from the next.
 //!
 //! Kept apart from the service that uses it, because a state machine that

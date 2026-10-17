@@ -34,8 +34,8 @@ pub struct BlackWhite {
 /// A capture is two things at once: the card, lit by the lamp, and the platen
 /// around it, which is near black. Taken together the dark surround pins the
 /// shadow point at nothing and the stretch does almost no work on the card.
-/// This finds where the two separate, by Otsu — the threshold that minimises
-/// the variance inside each half — so the points can be taken from the lit
+/// This finds where the two separate, by Otsu - the threshold that minimises
+/// the variance inside each half - so the points can be taken from the lit
 /// side alone.
 ///
 /// Returns `None` for a histogram with no pixels in it.
@@ -112,7 +112,7 @@ pub const UNLIT_SHARE: f64 = 0.05;
 
 /// Find the unlit platen under a capture, if there is one.
 ///
-/// [`split`] will separate *something* in any image — given a card filling the
+/// [`split`] will separate *something* in any image - given a card filling the
 /// frame it would happily split the print from the paper, which is the one
 /// thing that must not happen here. So the split is only accepted when the
 /// dark side looks like what it is supposed to be: far darker than the lit
@@ -140,7 +140,7 @@ pub fn above(histogram: &[u64; 256], threshold: u8) -> [u64; 256] {
 
 /// Find the stretch points in a 256-bin histogram.
 ///
-/// Returns `None` when there is nothing to stretch — an empty histogram, or one
+/// Returns `None` when there is nothing to stretch - an empty histogram, or one
 /// whose points would collapse onto each other.
 #[must_use]
 pub fn black_white(histogram: &[u64; 256], cuts: Cuts) -> Option<BlackWhite> {
