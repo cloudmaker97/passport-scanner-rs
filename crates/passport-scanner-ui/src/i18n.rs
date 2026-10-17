@@ -163,6 +163,7 @@ pub struct Strings {
     pub update_installed: &'static str,
     pub restart: &'static str,
     pub update_failed: &'static str,
+    pub development_build: &'static str,
 }
 
 impl Strings {
@@ -352,6 +353,7 @@ pub static DE: Strings = Strings {
     update_installed: "Update installiert · wirkt nach dem Neustart",
     restart: "Neu starten",
     update_failed: "Update fehlgeschlagen",
+    development_build: "Entwicklungsversion: Updates werden angezeigt, aber nicht installiert.",
 };
 
 pub static EN: Strings = Strings {
@@ -472,6 +474,7 @@ pub static EN: Strings = Strings {
     update_installed: "Update installed · takes effect after a restart",
     restart: "Restart",
     update_failed: "Update failed",
+    development_build: "Development build: updates are shown but not installed.",
 };
 
 #[cfg(test)]

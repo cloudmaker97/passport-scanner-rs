@@ -582,7 +582,10 @@ impl App {
                 // Installing only puts the files in place; the running
                 // session and its unsaved scans are left alone until the
                 // person restarts.
-                if self.auto_update && matches!(self.updating, Updating::Available(_)) {
+                if self.auto_update
+                    && self.backend.installs_updates()
+                    && matches!(self.updating, Updating::Available(_))
+                {
                     return self.update(Message::InstallUpdate);
                 }
             }
@@ -593,7 +596,7 @@ impl App {
                     return self.check_update();
                 }
             }
-            Message::InstallUpdate => {
+            Message::InstallUpdate if self.backend.installs_updates() => {
                 if let Updating::Available(update) = &self.updating {
                     let update = update.clone();
                     self.updating = Updating::Installing(update.clone());

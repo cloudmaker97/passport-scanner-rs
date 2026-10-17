@@ -435,6 +435,50 @@ fn turning_automatic_updates_on_is_remembered_and_looks_at_once() {
 }
 
 #[test]
+fn a_build_that_cannot_install_still_looks_but_never_installs() {
+    #[derive(Debug)]
+    struct Development(Scripted);
+    impl Backend for Development {
+        fn connect(&mut self) -> Result<Vec<Event>, String> {
+            self.0.connect()
+        }
+        fn connected(&self) -> bool {
+            self.0.connected()
+        }
+        fn send(&mut self, command: Command) -> Result<(), String> {
+            self.0.send(command)
+        }
+        fn poll(&mut self) -> Vec<Inbound> {
+            self.0.poll()
+        }
+        fn export_pdf(&self, id: String, request: ExportRequest) -> Task<Message> {
+            self.0.export_pdf(id, request)
+        }
+        fn updates(&self) -> bool {
+            true
+        }
+        fn installs_updates(&self) -> bool {
+            false
+        }
+        fn install_update(&self, update: Update) -> Task<Message> {
+            self.0.install_update(update)
+        }
+    }
+    let installed = Rc::new(RefCell::new(Vec::new()));
+    let mut app = App::new(
+        Box::new(Development(Scripted { installed: installed.clone(), ..Default::default() })),
+        Box::<Memory>::default(),
+    );
+    let _ = app.update(Message::Tick);
+    assert_eq!(app.updating, Updating::Checking);
+    let update = Update { version: "0.2.0".into(), download: "archive".into(), digest: None };
+    let _ = app.update(Message::UpdateChecked(Ok(Some(update.clone()))));
+    let _ = app.update(Message::InstallUpdate);
+    assert!(installed.borrow().is_empty());
+    assert_eq!(app.updating, Updating::Available(update));
+}
+
+#[test]
 fn a_backend_without_updates_never_looks() {
     let mut app = App::new(Box::new(Scripted::default()), Box::<Memory>::default());
     let _ = app.update(Message::Tick);

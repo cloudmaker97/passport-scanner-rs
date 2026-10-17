@@ -92,6 +92,11 @@ pub trait Backend: std::fmt::Debug {
     fn updates(&self) -> bool {
         false
     }
+    /// Whether a release that was found can also be put in place. A
+    /// development build looks, but leaves its own files alone.
+    fn installs_updates(&self) -> bool {
+        self.updates()
+    }
     /// Look for a newer release; finishes with [`Message::UpdateChecked`].
     fn check_update(&self) -> Task<Message> {
         Task::none()

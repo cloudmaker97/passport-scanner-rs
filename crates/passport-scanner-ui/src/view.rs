@@ -577,8 +577,9 @@ impl App {
             if !status.is_empty() {
                 settings = settings.push(text(status).size(11).color(color));
             }
+            let installs = self.backend.installs_updates();
             let action = match &self.updating {
-                Updating::Available(_) => {
+                Updating::Available(_) if installs => {
                     button(t.install_update).style(selected).on_press(Message::InstallUpdate)
                 }
                 Updating::Installing(_) => button(t.install_update).style(quiet),
@@ -594,6 +595,9 @@ impl App {
                     .on_toggle(Message::AutoUpdate)
                     .size(18),
             );
+            if !installs {
+                settings = settings.push(text(t.development_build).size(11).color(c.muted));
+            }
         }
         if let Some((notice, error)) = &self.notice {
             settings =

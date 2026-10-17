@@ -64,10 +64,14 @@ fn latest_release_url() -> Option<String> {
     Some(format!("https://api.github.com/repos/{slug}/releases/latest"))
 }
 
-/// Release builds of a platform that has an archive; a development build would
-/// otherwise replace itself in `target/`.
-pub(crate) fn supported() -> bool {
-    !cfg!(debug_assertions) && ASSET.is_some() && latest_release_url().is_some()
+/// Whether this platform has a release archive to look for.
+pub(crate) fn checks() -> bool {
+    ASSET.is_some() && latest_release_url().is_some()
+}
+
+/// Release builds only: a development build would replace itself in `target/`.
+pub(crate) fn installs() -> bool {
+    !cfg!(debug_assertions) && checks()
 }
 
 fn agent() -> ureq::Agent {

@@ -189,7 +189,11 @@ impl Backend for HostBackend {
     }
 
     fn updates(&self) -> bool {
-        update::supported()
+        update::checks()
+    }
+
+    fn installs_updates(&self) -> bool {
+        update::installs()
     }
 
     fn check_update(&self) -> Task<Message> {
