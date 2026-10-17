@@ -52,14 +52,12 @@ in their own crate; nothing else changes.
 
 ## Building
 
-Needs a Rust toolchain. On Windows the MSVC linker is required, so install the Visual Studio Build Tools with the C++ workload.
+Needs a Rust toolchain. On Windows the MSVC linker is required, so install the Visual Studio Build Tools with the C++ workload. On Windows, build from PowerShell rather than Git Bash: the GNU `link` in the Git Bash path shadows the MSVC linker of the same name.
 
 ```sh
 cargo test
 cargo clippy --all-targets
 ```
-
-On Windows, build from PowerShell rather than Git Bash: the GNU `link` in the Git Bash path shadows the MSVC linker of the same name.
 
 ### Boundaries kept, deliberately
 
@@ -81,9 +79,8 @@ out of someone else's work, and it is not represented as the manufacturer's.
 
 *Plustek*, *SecureScan* and the scanner model names are used here for one
 purpose: to identify the hardware this software works with, and the
-manufacturer's software whose behaviour it had to match.
+manufacturer's software whose behaviour it had to match. So, explicitly:
 
-So, explicitly:
 - All trade marks are the property of their respective owners. *Plustek* is a
   mark of the Plustek group; no claim to it is made here.
 - This project is **not affiliated with, authorised by, endorsed by or connected
@@ -100,19 +97,3 @@ So, explicitly:
   (`scripts/build-user-guide.sh`)
 - [docs/implementation/](docs/implementation/) - protocol, calibration and
   recognition internals
-
-## License
-
-Copyright (C) 2026 Dennis Heinrich
-
-This program is licensed under the MIT License. It is distributed WITHOUT ANY
-WARRANTY; see [LICENSE](LICENSE) for the full text.
-
-Third-party notices are in [licenses/](licenses/) and in the user guide's
-*Licenses and Credits* chapter.
-
-## Disclaimer
-
-Nothing in this file is legal advice. It records the basis the authors worked
-on, so that it can be checked, and it gives the statutory references so a reader
-can read the provisions themselves.
