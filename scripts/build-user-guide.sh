@@ -15,7 +15,7 @@ trap 'rm -rf "$tmp"' EXIT
 # The license must travel with the program; the guide carries it verbatim.
 {
     printf '# MIT License {.unnumbered}\n\n```license\n'
-    cat "$root/LICENSE"
+    cat "$root/LICENSE.txt"
     printf '```\n'
 } > "$tmp/99-license.md"
 

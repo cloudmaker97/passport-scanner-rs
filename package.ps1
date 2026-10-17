@@ -86,7 +86,7 @@ foreach ($line in Get-Content (Join-Path $root "scripts\release-layout.txt")) {
     New-Item -ItemType Directory -Force -Path $folder | Out-Null
     Copy-Item (Join-Path $release "$($fields[1]).exe") $folder
 }
-Copy-Item (Join-Path $root "LICENSE") $dist
+Copy-Item (Join-Path $root "LICENSE.txt") $dist
 Copy-Item (Join-Path $root "licenses\*") (Join-Path $dist "licenses")
 
 Write-Host "`ndist\" -ForegroundColor Green

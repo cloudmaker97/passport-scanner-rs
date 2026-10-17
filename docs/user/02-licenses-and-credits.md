@@ -17,7 +17,7 @@ In short:
 The program comes *without any warranty*, not even the implied warranty of
 merchantability or fitness for a particular purpose. The full license text is
 the authority; it is printed at the end of this guide and is in the file
-`LICENSE` next to the program.
+`LICENSE.txt` next to the program.
 
 ## Third-party work
 

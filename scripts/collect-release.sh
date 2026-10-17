@@ -43,6 +43,6 @@ for file in "$bin"/passport-scanner-*; do
     esac
 done
 
-cp "$root/LICENSE" "$dist/"
+cp "$root/LICENSE.txt" "$dist/"
 mkdir -p "$dist/licenses"
 cp -r "$root/licenses/." "$dist/licenses/"
