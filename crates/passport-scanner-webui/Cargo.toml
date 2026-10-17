@@ -1,0 +1,40 @@
+[package]
+name = "passport-scanner-webui"
+description = "Browser client for Passport Scanner: the shared Iced interface compiled to WebAssembly"
+version.workspace = true
+edition.workspace = true
+rust-version = "1.88"
+license.workspace = true
+
+[dependencies]
+passport-scanner-ui.workspace = true
+passport-scanner-protocol.workspace = true
+serde_json.workspace = true
+iced = { version = "0.14", default-features = false }
+
+[target.'cfg(target_arch = "wasm32")'.dependencies]
+wasm-bindgen = "0.2"
+wasm-bindgen-futures = "0.4"
+js-sys = "0.3"
+console_error_panic_hook = "0.1"
+web-sys = { version = "0.3", features = [
+    "Blob",
+    "Clipboard",
+    "Document",
+    "Element",
+    "EventSource",
+    "HtmlAnchorElement",
+    "HtmlElement",
+    "Location",
+    "MessageEvent",
+    "Navigator",
+    "Request",
+    "RequestInit",
+    "Response",
+    "Storage",
+    "Url",
+    "Window",
+] }
+
+[lints]
+workspace = true

@@ -1,0 +1,17 @@
+[package]
+name = "passport-scanner-recognize"
+description = "Finding and reading the machine-readable zone on a captured document"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+
+[dependencies]
+passport-scanner-core.workspace = true
+passport-scanner-imaging.workspace = true
+passport-scanner-mrz.workspace = true
+tracing.workspace = true
+image = { version = "0.25", default-features = false, features = ["jpeg", "png"] }
+
+[lints]
+workspace = true

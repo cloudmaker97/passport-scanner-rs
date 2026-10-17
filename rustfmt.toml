@@ -1,0 +1,4 @@
+# The style this codebase was written in, so it stops being a matter of
+# whoever ran the formatter last.
+max_width = 100
+use_small_heuristics = "Max"

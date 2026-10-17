@@ -1,0 +1,5 @@
+/target
+/scans
+/dist
+**/*.rs.bk
+.DS_Store

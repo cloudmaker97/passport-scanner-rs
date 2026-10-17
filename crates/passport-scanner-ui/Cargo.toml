@@ -1,0 +1,29 @@
+[package]
+name = "passport-scanner-ui"
+description = "Shared Iced interface for the Passport Scanner desktop and web clients"
+version.workspace = true
+edition.workspace = true
+rust-version = "1.88"
+license.workspace = true
+
+[features]
+# Explicit developer-only capture through Iced's renderer; native only.
+render-smoke = []
+
+[dependencies]
+passport-scanner-protocol.workspace = true
+serde_json.workspace = true
+iced = { version = "0.14", default-features = false, features = ["tiny-skia", "image-without-codecs", "fira-sans", "crisp"] }
+image = { version = "0.25", default-features = false, features = ["jpeg", "png"] }
+base64 = "0.22"
+
+# The browser runs futures through wasm-bindgen; natively Iced needs an executor.
+[target.'cfg(not(target_arch = "wasm32"))'.dependencies]
+iced = { version = "0.14", default-features = false, features = ["tokio"] }
+
+[dev-dependencies]
+# Exercise the exact EXIF-aware loader used by Iced's tiny-skia renderer.
+iced_graphics = { version = "0.14", features = ["image"] }
+
+[lints]
+workspace = true

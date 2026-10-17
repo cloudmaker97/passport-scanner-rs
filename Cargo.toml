@@ -1,0 +1,52 @@
+[workspace]
+resolver = "3"
+members = [
+    "crates/passport-scanner-desktop",
+    "crates/passport-scanner-app",
+    "crates/passport-scanner-capture",
+    "crates/passport-scanner-core",
+    "crates/passport-scanner-device",
+    "crates/passport-scanner-imaging",
+    "crates/passport-scanner-mrz",
+    "crates/passport-scanner-protocol",
+    "crates/passport-scanner-recognize",
+    "crates/passport-scanner-transport-ks",
+    "crates/passport-scanner-ui",
+    "crates/passport-scanner-webui",
+]
+
+[workspace.package]
+version = "0.1.0"
+edition = "2024"
+rust-version = "1.85"
+license = "MIT"
+repository = "https://github.com/dh/passport-scanner"
+
+[workspace.dependencies]
+passport-scanner-app = { path = "crates/passport-scanner-app" }
+passport-scanner-capture = { path = "crates/passport-scanner-capture" }
+passport-scanner-core = { path = "crates/passport-scanner-core" }
+passport-scanner-device = { path = "crates/passport-scanner-device" }
+passport-scanner-imaging = { path = "crates/passport-scanner-imaging" }
+passport-scanner-mrz = { path = "crates/passport-scanner-mrz" }
+passport-scanner-protocol = { path = "crates/passport-scanner-protocol" }
+passport-scanner-recognize = { path = "crates/passport-scanner-recognize" }
+passport-scanner-transport-ks = { path = "crates/passport-scanner-transport-ks" }
+passport-scanner-ui = { path = "crates/passport-scanner-ui" }
+
+thiserror = "2"
+serde = "1"
+serde_json = "1"
+tracing = "0.1"
+
+[workspace.lints.rust]
+missing_debug_implementations = "warn"
+unreachable_pub = "warn"
+
+[workspace.lints.clippy]
+todo = "warn"
+dbg_macro = "warn"
+
+[patch.crates-io]
+# Balance Media Foundation buffer locks and discard samples on stream stop.
+nokhwa-bindings-windows = { path = "vendor/nokhwa-bindings-windows" }

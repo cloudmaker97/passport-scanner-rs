@@ -1,0 +1,13 @@
+[package]
+name = "passport-scanner-core"
+description = "Device-agnostic abstractions for ID document scanners"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+
+[dependencies]
+thiserror.workspace = true
+
+[lints]
+workspace = true

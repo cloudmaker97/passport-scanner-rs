@@ -1,0 +1,13 @@
+[package]
+name = "passport-scanner-mrz"
+description = "ICAO 9303 machine-readable zone parser"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+
+[dependencies]
+passport-scanner-core.workspace = true
+
+[lints]
+workspace = true

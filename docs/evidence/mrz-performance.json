@@ -1,0 +1,89 @@
+{
+  "scope": "Offline retained front/back, release; recognition only, no hardware; same pixels and OCR configuration",
+  "results": [
+    {
+      "repeat": 1,
+      "sample": "front",
+      "mode": "sequential",
+      "elapsed_ms": 2542,
+      "fields_present": false
+    },
+    {
+      "repeat": 1,
+      "sample": "front",
+      "mode": "parallel",
+      "elapsed_ms": 1390,
+      "fields_present": false
+    },
+    {
+      "repeat": 1,
+      "sample": "back",
+      "mode": "sequential",
+      "elapsed_ms": 1786,
+      "fields_present": true
+    },
+    {
+      "repeat": 1,
+      "sample": "back",
+      "mode": "parallel",
+      "elapsed_ms": 1048,
+      "fields_present": true
+    },
+    {
+      "repeat": 2,
+      "sample": "front",
+      "mode": "sequential",
+      "elapsed_ms": 2529,
+      "fields_present": false
+    },
+    {
+      "repeat": 2,
+      "sample": "front",
+      "mode": "parallel",
+      "elapsed_ms": 1402,
+      "fields_present": false
+    },
+    {
+      "repeat": 2,
+      "sample": "back",
+      "mode": "sequential",
+      "elapsed_ms": 1786,
+      "fields_present": true
+    },
+    {
+      "repeat": 2,
+      "sample": "back",
+      "mode": "parallel",
+      "elapsed_ms": 1046,
+      "fields_present": true
+    },
+    {
+      "repeat": 3,
+      "sample": "front",
+      "mode": "sequential",
+      "elapsed_ms": 2523,
+      "fields_present": false
+    },
+    {
+      "repeat": 3,
+      "sample": "front",
+      "mode": "parallel",
+      "elapsed_ms": 1417,
+      "fields_present": false
+    },
+    {
+      "repeat": 3,
+      "sample": "back",
+      "mode": "sequential",
+      "elapsed_ms": 1789,
+      "fields_present": true
+    },
+    {
+      "repeat": 3,
+      "sample": "back",
+      "mode": "parallel",
+      "elapsed_ms": 1041,
+      "fields_present": true
+    }
+  ]
+}

@@ -1,0 +1,85 @@
+# Build the programs and put them in dist\ ready to run.
+#
+#   .\package.ps1
+#
+# The service serves the browser client from www\ beside itself: the shared
+# Iced interface compiled to WebAssembly. That needs, once:
+#
+#   rustup target add wasm32-unknown-unknown
+#   cargo install wasm-bindgen-cli --version <the wasm-bindgen version in Cargo.lock>
+#
+# wasm-opt (from binaryen) is used when installed and shrinks the module.
+
+$ErrorActionPreference = "Stop"
+$root = $PSScriptRoot
+$dist = Join-Path $root "dist"
+$cargoCommand = Get-Command cargo -ErrorAction SilentlyContinue
+$cargoExecutable = if ($cargoCommand) { $cargoCommand.Source } else { Join-Path $env:USERPROFILE ".cargo\bin\cargo.exe" }
+if (-not (Test-Path -LiteralPath $cargoExecutable)) { throw "Rust cargo was not found. Install a Rust toolchain first." }
+
+Write-Host "building..." -ForegroundColor Cyan
+Push-Location $root
+try {
+    # Cargo writes its progress to stderr, and with ErrorActionPreference set
+    # to Stop that alone aborts the script even on a build that succeeded. The
+    # exit code is the thing to believe.
+    $ErrorActionPreference = "Continue"
+    & $cargoExecutable build --release -p passport-scanner-app -p passport-scanner-desktop
+    $built = $LASTEXITCODE
+    if ($built -ne 0) { throw "the build failed" }
+    & $cargoExecutable build --release --target wasm32-unknown-unknown -p passport-scanner-webui
+    $built = $LASTEXITCODE
+    $ErrorActionPreference = "Stop"
+    if ($built -ne 0) { throw "the web client build failed (rustup target add wasm32-unknown-unknown)" }
+} finally {
+    Pop-Location
+}
+
+# A running service holds its own executable open, so say so plainly rather
+# than failing on an access error the reader has to decode.
+$running = Get-Process -Name "passport-scanner-*" -ErrorAction SilentlyContinue |
+    Where-Object { $_.Path -and $_.Path.StartsWith($dist) }
+if ($running) {
+    $names = ($running | ForEach-Object { $_.Name }) -join ", "
+    throw "$names is running from dist\ and holds the file open. Close it, then run this again."
+}
+
+# wasm-bindgen's generated glue must come from the exact library version the
+# module was linked against; check before producing a client that cannot load.
+$lock = Get-Content (Join-Path $root "Cargo.lock") -Raw
+$expected = [regex]::Match($lock, '(?m)^name = "wasm-bindgen"\r?\nversion = "([^"]+)"').Groups[1].Value
+$bindgen = Get-Command wasm-bindgen -ErrorAction SilentlyContinue
+if (-not $bindgen) { throw "wasm-bindgen was not found. Run: cargo install wasm-bindgen-cli --version $expected" }
+$installed = ((& $bindgen.Source --version) -split " ")[1]
+if ($installed -ne $expected) {
+    throw "wasm-bindgen $installed does not match $expected from Cargo.lock. Run: cargo install wasm-bindgen-cli --version $expected"
+}
+
+# Replace only packaged files; keep any user files placed in dist.
+$www = Join-Path $dist "www"
+New-Item -ItemType Directory -Force -Path $www | Out-Null
+New-Item -ItemType Directory -Force -Path (Join-Path $dist "licenses") | Out-Null
+# The former HTML interface is superseded by www\.
+Remove-Item -Recurse -Force -ErrorAction SilentlyContinue (Join-Path $dist "ui")
+
+$module = Join-Path $root "target\wasm32-unknown-unknown\release\passport-scanner-webui.wasm"
+& $bindgen.Source --target web --no-typescript --out-dir $www $module
+if ($LASTEXITCODE -ne 0) { throw "wasm-bindgen failed" }
+$optimizer = Get-Command wasm-opt -ErrorAction SilentlyContinue
+if ($optimizer) {
+    $output = Join-Path $www "passport-scanner-webui_bg.wasm"
+    & $optimizer.Source -Oz --enable-bulk-memory --enable-nontrapping-float-to-int -o $output $output
+    if ($LASTEXITCODE -ne 0) { throw "wasm-opt failed" }
+}
+
+Copy-Item (Join-Path $root "target\release\passport-scanner-*.exe") $dist
+Copy-Item (Join-Path $root "crates\passport-scanner-webui\index.html") $www
+Copy-Item (Join-Path $root "licenses\material-design-icons-LICENSE.txt") (Join-Path $dist "licenses")
+Copy-Item (Join-Path $root "licenses\application-icon.md") (Join-Path $dist "licenses")
+Copy-Item (Join-Path $root "licenses\fira-mono-OFL.txt") (Join-Path $dist "licenses")
+
+Write-Host "`ndist\" -ForegroundColor Green
+Get-ChildItem $dist -Recurse -File | ForEach-Object {
+    "  {0,-28} {1,8:N0} bytes" -f $_.FullName.Replace("$dist\", ""), $_.Length
+}
+Write-Host "`nstart the desktop with:  .\dist\passport-scanner-desktop.exe" -ForegroundColor Cyan

@@ -1,0 +1,15 @@
+[package]
+name = "passport-scanner-device"
+description = "Protocol and device driver for Plustek SecureScan scanners"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+
+[dependencies]
+passport-scanner-core.workspace = true
+thiserror.workspace = true
+tracing.workspace = true
+
+[lints]
+workspace = true

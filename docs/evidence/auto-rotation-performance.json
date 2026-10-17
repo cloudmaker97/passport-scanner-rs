@@ -1,0 +1,53 @@
+{
+  "scope": "Offline release recognition including orientation, same retained front/back; no hardware",
+  "results": [
+    {
+      "repeat": 1,
+      "sample": "front",
+      "elapsed_ms": 2364,
+      "fields_present": false,
+      "orientation": [
+        "orientation elapsed_ms=954 correction=Some(0)"
+      ]
+    },
+    {
+      "repeat": 1,
+      "sample": "back",
+      "elapsed_ms": 1044,
+      "fields_present": true,
+      "orientation": []
+    },
+    {
+      "repeat": 2,
+      "sample": "front",
+      "elapsed_ms": 2341,
+      "fields_present": false,
+      "orientation": [
+        "orientation elapsed_ms=932 correction=Some(0)"
+      ]
+    },
+    {
+      "repeat": 2,
+      "sample": "back",
+      "elapsed_ms": 1048,
+      "fields_present": true,
+      "orientation": []
+    },
+    {
+      "repeat": 3,
+      "sample": "front",
+      "elapsed_ms": 2344,
+      "fields_present": false,
+      "orientation": [
+        "orientation elapsed_ms=930 correction=Some(0)"
+      ]
+    },
+    {
+      "repeat": 3,
+      "sample": "back",
+      "elapsed_ms": 1052,
+      "fields_present": true,
+      "orientation": []
+    }
+  ]
+}

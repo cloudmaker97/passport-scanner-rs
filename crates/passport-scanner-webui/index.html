@@ -1,0 +1,34 @@
+<!doctype html>
+<html lang="de">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Passport Scanner</title>
+  <link rel="icon" type="image/png" href="favicon.png">
+  <style>
+    html, body { margin: 0; height: 100%; overflow: hidden; background: #0d0f11; color: #9da3a9;
+      font: 14px system-ui, sans-serif; }
+    @media (prefers-color-scheme: light) { html, body { background: #fff; color: #53585e; } }
+    #passport-scanner { display: grid; place-items: center; height: 100%; text-align: center; }
+    noscript, .failed { color: #e4695a; }
+  </style>
+</head>
+<body>
+  <!-- The interface canvas replaces this element once the module has started. -->
+  <div id="passport-scanner">Passport Scanner …</div>
+  <noscript>JavaScript und WebAssembly werden benötigt. · JavaScript and WebAssembly are required.</noscript>
+  <script type="module">
+    import init from "./passport-scanner-webui.js";
+    init().catch((error) => {
+      // Iced leaves the event loop by throwing a control-flow exception; only real failures land here.
+      if (String(error).includes("Using exceptions for control flow")) return;
+      const mount = document.getElementById("passport-scanner");
+      if (mount) {
+        mount.className = "failed";
+        mount.textContent = "Die Oberfläche konnte nicht geladen werden. · The interface could not be loaded: " + error;
+      }
+      console.error(error);
+    });
+  </script>
+</body>
+</html>

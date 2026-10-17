@@ -1,0 +1,29 @@
+[package]
+name = "passport-scanner-desktop"
+description = "Native Iced desktop interface for Passport Scanner"
+version.workspace = true
+edition.workspace = true
+rust-version = "1.88"
+license.workspace = true
+
+[features]
+# Explicit developer-only capture through Iced's renderer; no OS automation.
+render-smoke = ["passport-scanner-ui/render-smoke"]
+
+[dependencies]
+passport-scanner-app.workspace = true
+passport-scanner-protocol.workspace = true
+passport-scanner-ui.workspace = true
+serde_json.workspace = true
+iced = { version = "0.14", default-features = false, features = ["tokio"] }
+image = { version = "0.25", default-features = false, features = ["png"] }
+rfd = { version = "0.17", default-features = false }
+sys-locale = "0.3"
+time = { version = "0.3", features = ["local-offset"] }
+dirs = "6"
+
+[build-dependencies]
+winresource = "0.1"
+
+[lints]
+workspace = true

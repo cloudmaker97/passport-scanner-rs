@@ -1,0 +1,87 @@
+[package]
+name = "passport-scanner-app"
+description = "Driving a Plustek SecureScan scanner end to end"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+
+[dependencies]
+passport-scanner-capture.workspace = true
+passport-scanner-core.workspace = true
+passport-scanner-device.workspace = true
+passport-scanner-imaging.workspace = true
+passport-scanner-mrz.workspace = true
+passport-scanner-protocol.workspace = true
+passport-scanner-recognize.workspace = true
+thiserror.workspace = true
+serde_json.workspace = true
+base64 = "0.22"
+time = { version = "0.3", features = ["formatting"] }
+image = { version = "0.25", default-features = false, features = ["jpeg"] }
+
+[target.'cfg(windows)'.dependencies]
+passport-scanner-transport-ks.workspace = true
+
+[[bin]]
+name = "passport-scanner-scan"
+path = "src/bin/scan.rs"
+
+[lints]
+workspace = true
+
+[[bin]]
+name = "passport-scanner-dump"
+path = "src/bin/dump.rs"
+
+[[bin]]
+name = "passport-scanner-lamps"
+path = "src/bin/lamps.rs"
+
+[[bin]]
+name = "passport-scanner-serve"
+path = "src/bin/serve.rs"
+
+[[bin]]
+name = "passport-scanner-read"
+path = "src/bin/read.rs"
+
+[[bin]]
+name = "passport-scanner-expose"
+path = "src/bin/expose.rs"
+
+[[bin]]
+name = "passport-scanner-controls"
+path = "src/bin/controls.rs"
+
+[[bin]]
+name = "passport-scanner-exposure"
+path = "src/bin/exposure.rs"
+
+[[bin]]
+name = "passport-scanner-probe"
+path = "src/bin/probe.rs"
+
+[[bin]]
+name = "passport-scanner-time"
+path = "src/bin/time.rs"
+
+[[bin]]
+name = "passport-scanner-stages"
+path = "src/bin/stages.rs"
+
+[[bin]]
+name = "passport-scanner-survey"
+path = "src/bin/survey.rs"
+
+[[bin]]
+name = "passport-scanner-calibrate"
+path = "src/bin/calibrate.rs"
+
+[[bin]]
+name = "passport-scanner-web"
+path = "src/bin/web.rs"
+
+[[bin]]
+name = "passport-scanner-mcp"
+path = "src/bin/mcp.rs"

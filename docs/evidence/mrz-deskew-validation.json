@@ -1,0 +1,217 @@
+{
+  "scope": "Offline release MRZ-only replay including diagnostic image decode/crop; two light sources; no hardware or new physical captures; whole-document orientation fallback intentionally excluded",
+  "source": "One retained back capture from scans/mrz-bug-baseline; EXIF-normalized then verified 180-degree upright correction; Pillow bicubic expanded black canvas, 64px border; cardinal variants are exact pixel rotations",
+  "comparison": "GivenName,Surname,DocumentNumber,DateOfBirth,DateOfExpiry,Nationality,IssuingState,Sex compared in memory against the verified unskewed version of that SAME capture; no values retained",
+  "cases": [
+    {
+      "fixture": "baseline",
+      "kind": "baseline",
+      "verified_mrz": true,
+      "essential_fields_equal": null,
+      "elapsed_ms": 1467
+    },
+    {
+      "fixture": "m050",
+      "kind": "development",
+      "verified_mrz": true,
+      "essential_fields_equal": true,
+      "elapsed_ms": 1689
+    },
+    {
+      "fixture": "p050",
+      "kind": "development",
+      "verified_mrz": true,
+      "essential_fields_equal": true,
+      "elapsed_ms": 1700
+    },
+    {
+      "fixture": "m100",
+      "kind": "development",
+      "verified_mrz": true,
+      "essential_fields_equal": true,
+      "elapsed_ms": 2281
+    },
+    {
+      "fixture": "p100",
+      "kind": "development",
+      "verified_mrz": true,
+      "essential_fields_equal": true,
+      "elapsed_ms": 2503
+    },
+    {
+      "fixture": "m150",
+      "kind": "development",
+      "verified_mrz": true,
+      "essential_fields_equal": true,
+      "elapsed_ms": 3180
+    },
+    {
+      "fixture": "p150",
+      "kind": "development",
+      "verified_mrz": true,
+      "essential_fields_equal": true,
+      "elapsed_ms": 2162
+    },
+    {
+      "fixture": "m200",
+      "kind": "development",
+      "verified_mrz": true,
+      "essential_fields_equal": true,
+      "elapsed_ms": 2196
+    },
+    {
+      "fixture": "p200",
+      "kind": "development",
+      "verified_mrz": true,
+      "essential_fields_equal": true,
+      "elapsed_ms": 2021
+    },
+    {
+      "fixture": "m300",
+      "kind": "development",
+      "verified_mrz": true,
+      "essential_fields_equal": true,
+      "elapsed_ms": 2113
+    },
+    {
+      "fixture": "p300",
+      "kind": "development",
+      "verified_mrz": true,
+      "essential_fields_equal": true,
+      "elapsed_ms": 2093
+    },
+    {
+      "fixture": "m075",
+      "kind": "holdout",
+      "verified_mrz": true,
+      "essential_fields_equal": true,
+      "elapsed_ms": 1911
+    },
+    {
+      "fixture": "p075",
+      "kind": "holdout",
+      "verified_mrz": true,
+      "essential_fields_equal": true,
+      "elapsed_ms": 2183
+    },
+    {
+      "fixture": "m125",
+      "kind": "holdout",
+      "verified_mrz": true,
+      "essential_fields_equal": true,
+      "elapsed_ms": 1963
+    },
+    {
+      "fixture": "p125",
+      "kind": "holdout",
+      "verified_mrz": true,
+      "essential_fields_equal": true,
+      "elapsed_ms": 2037
+    },
+    {
+      "fixture": "m250",
+      "kind": "holdout",
+      "verified_mrz": false,
+      "essential_fields_equal": null,
+      "elapsed_ms": 2607
+    },
+    {
+      "fixture": "p250",
+      "kind": "holdout",
+      "verified_mrz": true,
+      "essential_fields_equal": true,
+      "elapsed_ms": 1975
+    },
+    {
+      "fixture": "m100-r90",
+      "kind": "cardinal",
+      "verified_mrz": true,
+      "essential_fields_equal": true,
+      "elapsed_ms": 1950
+    },
+    {
+      "fixture": "m100-r180",
+      "kind": "cardinal",
+      "verified_mrz": true,
+      "essential_fields_equal": true,
+      "elapsed_ms": 1934
+    },
+    {
+      "fixture": "m100-r270",
+      "kind": "cardinal",
+      "verified_mrz": true,
+      "essential_fields_equal": true,
+      "elapsed_ms": 2440
+    },
+    {
+      "fixture": "p100-r90",
+      "kind": "cardinal",
+      "verified_mrz": true,
+      "essential_fields_equal": true,
+      "elapsed_ms": 2282
+    },
+    {
+      "fixture": "p100-r180",
+      "kind": "cardinal",
+      "verified_mrz": true,
+      "essential_fields_equal": true,
+      "elapsed_ms": 2272
+    },
+    {
+      "fixture": "p100-r270",
+      "kind": "cardinal",
+      "verified_mrz": true,
+      "essential_fields_equal": true,
+      "elapsed_ms": 2402
+    },
+    {
+      "fixture": "front-pilot",
+      "kind": "negative",
+      "verified_mrz": false,
+      "essential_fields_equal": null,
+      "elapsed_ms": 2131
+    },
+    {
+      "fixture": "blank-session",
+      "kind": "negative",
+      "verified_mrz": false,
+      "essential_fields_equal": null,
+      "elapsed_ms": 5356
+    }
+  ],
+  "negatives": "Retained pilot German ID front and blank-paper image from read-only localhost state; neither has MRZ",
+  "summary": {
+    "baseline": {
+      "count": 1,
+      "verified": 1,
+      "all_verified_essential_fields_equal": null
+    },
+    "development": {
+      "count": 10,
+      "verified": 10,
+      "all_verified_essential_fields_equal": true
+    },
+    "holdout": {
+      "count": 6,
+      "verified": 5,
+      "all_verified_essential_fields_equal": true
+    },
+    "cardinal": {
+      "count": 6,
+      "verified": 6,
+      "all_verified_essential_fields_equal": true
+    },
+    "negative": {
+      "count": 2,
+      "verified": 0,
+      "all_verified_essential_fields_equal": null
+    }
+  },
+  "remaining_limitation": {
+    "fixture": "m250",
+    "description": "Minus 2.5 degrees CCW held-out tilt remains unverified, with no fields returned. White correction estimate exactly -2.5 degrees CW, confidence 0.68046117; remaining failure is OCR, not quarter-degree quantization."
+  },
+  "timing_note": "Observed wall-clock replay times, not a controlled throughput benchmark; diagnostic decode/crop is included and concurrent development/build activity may affect timing.",
+  "synthetic_tilt_verified_count": 21,
+  "synthetic_tilt_count": 22
+}

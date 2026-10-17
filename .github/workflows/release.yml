@@ -1,0 +1,48 @@
+name: Release
+
+# Builds the user guide from docs/user/ into one PDF and attaches it to the
+# release. Runs when a release is published; can be started by hand for a tag.
+
+on:
+  release:
+    types: [published]
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: Release tag to attach the guide to
+        required: true
+
+permissions:
+  contents: write
+
+jobs:
+  user-guide:
+    name: User guide PDF
+    runs-on: ubuntu-24.04
+    env:
+      TAG: ${{ github.event.release.tag_name || inputs.tag }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ env.TAG }}
+
+      - name: Install pandoc and LaTeX
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends \
+            pandoc texlive-xetex texlive-latex-extra texlive-fonts-recommended \
+            fonts-dejavu lmodern
+
+      - name: Build PDF
+        run: VERSION="${TAG#v}" bash scripts/build-user-guide.sh dist/Passport-Scanner-User-Guide.pdf
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: user-guide
+          path: dist/Passport-Scanner-User-Guide.pdf
+          if-no-files-found: error
+
+      - name: Attach to release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh release upload "$TAG" dist/Passport-Scanner-User-Guide.pdf LICENSE --clobber

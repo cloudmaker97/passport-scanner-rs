@@ -1,0 +1,77 @@
+name: Build
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+env:
+  CARGO_TERM_COLOR: always
+
+jobs:
+  build:
+    name: Build (${{ matrix.name }})
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - name: windows
+            os: windows-latest
+          - name: macos
+            os: macos-latest
+          - name: linux
+            os: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      # v4l2-sys-mit runs bindgen (libclang); Iced/winit and rfd want the
+      # windowing and D-Bus headers.
+      - name: Install Linux dependencies
+        if: runner.os == 'Linux'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends \
+            pkg-config libclang-dev libv4l-dev \
+            libxkbcommon-dev libwayland-dev libx11-dev libdbus-1-dev
+
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: wasm32-unknown-unknown
+
+      - uses: Swatinem/rust-cache@v2
+
+      - name: Build
+        run: cargo build --release --workspace --locked
+
+      # The browser client: the shared Iced interface compiled to WebAssembly.
+      # wasm-bindgen's CLI must match the library version in Cargo.lock exactly.
+      - name: Build web client
+        shell: bash
+        run: |
+          version=$(awk '/^name = "wasm-bindgen"$/ { getline; gsub(/version = |"/, ""); print; exit }' Cargo.lock)
+          cargo install wasm-bindgen-cli --version "$version" --locked
+          cargo build --release --locked --target wasm32-unknown-unknown -p passport-scanner-webui
+          mkdir -p dist/www
+          wasm-bindgen --target web --no-typescript --out-dir dist/www \
+            target/wasm32-unknown-unknown/release/passport-scanner-webui.wasm
+          cp crates/passport-scanner-webui/index.html dist/www/
+
+      # Same layout as package.ps1: the programs, with www/ beside them.
+      - name: Collect binaries
+        shell: bash
+        run: |
+          cp LICENSE dist/
+          cp -r licenses dist/
+          for f in target/release/passport-scanner-*; do
+            case "$f" in *.d|*.pdb) continue ;; esac
+            [ -f "$f" ] && cp "$f" dist/
+          done
+          ls -la dist
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: passport-scanner-${{ matrix.name }}
+          path: dist/
+          if-no-files-found: error

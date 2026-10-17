@@ -1,0 +1,15 @@
+[package]
+name = "passport-scanner-protocol"
+description = "The wire contract between the Passport Scanner core and any front end"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+
+[dependencies]
+passport-scanner-core.workspace = true
+serde = { workspace = true, features = ["derive"] }
+serde_json.workspace = true
+
+[lints]
+workspace = true
