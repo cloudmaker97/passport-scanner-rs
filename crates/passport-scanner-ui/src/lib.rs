@@ -7,6 +7,7 @@
 pub mod backend;
 mod badge;
 pub mod i18n;
+mod links;
 pub mod mock;
 mod model;
 #[cfg(test)]
@@ -140,6 +141,8 @@ pub enum Message {
     ResetFolder,
     DismissNotice,
     CheckUpdate,
+    /// Open a page in the browser.
+    OpenLink(&'static str),
     UpdateChecked(Result<Option<Update>, String>),
     InstallUpdate,
     UpdateInstalled(Result<(), String>),
@@ -551,6 +554,7 @@ impl App {
             }
             Message::DismissNotice => self.notice = None,
             Message::CheckUpdate => return self.check_update(),
+            Message::OpenLink(url) => return self.backend.open_link(url),
             Message::UpdateChecked(result) => {
                 self.updating = match result {
                     Ok(Some(update)) => Updating::Available(update),

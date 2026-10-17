@@ -203,6 +203,32 @@ impl Backend for HostBackend {
         )
     }
 
+    fn open_link(&self, url: &'static str) -> Task<Message> {
+        // Whatever the system opens web addresses with; nothing to wait for.
+        #[cfg(windows)]
+        let opener = {
+            use std::os::windows::process::CommandExt;
+            let mut command = std::process::Command::new("rundll32");
+            command.args(["url.dll,FileProtocolHandler", url]).creation_flags(0x0800_0000);
+            command
+        };
+        #[cfg(target_os = "macos")]
+        let opener = {
+            let mut command = std::process::Command::new("open");
+            command.arg(url);
+            command
+        };
+        #[cfg(all(unix, not(target_os = "macos")))]
+        let opener = {
+            let mut command = std::process::Command::new("xdg-open");
+            command.arg(url);
+            command
+        };
+        let mut opener = opener;
+        let _ = opener.spawn();
+        Task::none()
+    }
+
     fn restart(&self) -> Task<Message> {
         update::request_restart();
         iced::exit()

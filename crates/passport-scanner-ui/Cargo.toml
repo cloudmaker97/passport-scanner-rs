@@ -13,7 +13,7 @@ render-smoke = []
 [dependencies]
 passport-scanner-protocol.workspace = true
 serde_json.workspace = true
-iced = { version = "0.14", default-features = false, features = ["tiny-skia", "image-without-codecs", "fira-sans", "crisp", "canvas"] }
+iced = { version = "0.14", default-features = false, features = ["tiny-skia", "image-without-codecs", "fira-sans", "crisp", "canvas", "svg"] }
 image = { version = "0.25", default-features = false, features = ["jpeg", "png"] }
 base64 = "0.22"
 

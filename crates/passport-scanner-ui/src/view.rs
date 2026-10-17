@@ -552,6 +552,13 @@ impl App {
                     VERSION.into()
                 })
                 .size(12),
+            )
+            .push(
+                row![
+                    links::button(links::Link::Website, t.website, c.ink),
+                    links::button(links::Link::Repository, "GitHub", c.ink),
+                ]
+                .spacing(8),
             );
         if self.backend.updates() {
             let (status, color) = match &self.updating {
@@ -623,7 +630,7 @@ fn panel(theme: &Theme) -> container::Style {
         ..Default::default()
     }
 }
-fn quiet(theme: &Theme, status: button::Status) -> button::Style {
+pub(crate) fn quiet(theme: &Theme, status: button::Status) -> button::Style {
     let c = Colors::theme(theme);
     button::Style {
         background: Some(Background::Color(c.surface)),

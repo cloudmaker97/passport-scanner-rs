@@ -173,6 +173,11 @@ mod web {
             std::mem::take(&mut self.link.borrow_mut().inbound)
         }
 
+        fn open_link(&self, url: &'static str) -> Task<Message> {
+            let _ = window().open_with_url_and_target(url, "_blank");
+            Task::none()
+        }
+
         fn export_pdf(&self, document_id: String, _: ExportRequest) -> Task<Message> {
             Task::perform(download_pdf(document_id), Message::Exported)
         }

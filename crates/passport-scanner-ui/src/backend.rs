@@ -101,6 +101,10 @@ pub trait Backend: std::fmt::Debug {
     fn install_update(&self, _update: Update) -> Task<Message> {
         Task::none()
     }
+    /// Show `url` in the browser.
+    fn open_link(&self, _url: &'static str) -> Task<Message> {
+        Task::none()
+    }
     /// Close and start the installed release.
     fn restart(&self) -> Task<Message> {
         Task::none()
