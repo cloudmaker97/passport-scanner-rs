@@ -5,6 +5,7 @@
 //! storage - stay in the thin clients that construct [`App`].
 
 pub mod backend;
+mod badge;
 pub mod i18n;
 pub mod mock;
 mod model;

@@ -209,10 +209,21 @@ impl App {
             }
             let count =
                 usize::from(document.front.is_some()) + usize::from(document.back.is_some());
+            let mark = badge::Badge {
+                mrz: badge::Mrz::of(document),
+                good: c.good,
+                bad: c.bad,
+                muted: c.muted,
+            };
             item = item.push(
                 column![
                     text(t.document_title(self.documents.0.len() - index)).size(13),
-                    text(t.page_count(count)).size(11)
+                    row![
+                        text(t.page_count(count)).size(11),
+                        iced::widget::canvas(mark).width(badge::SIZE).height(badge::SIZE)
+                    ]
+                    .spacing(6)
+                    .align_y(Alignment::Center)
                 ]
                 .spacing(4),
             );
