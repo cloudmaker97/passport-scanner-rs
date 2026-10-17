@@ -101,6 +101,7 @@ impl App {
                 .style(quiet)
                 .on_press_maybe((complete && !self.exporting).then_some(Message::Export)),
             space().width(Fill),
+            self.update_button(),
             button(t.settings).style(quiet).on_press(Message::OpenSettings),
         ]
         .spacing(8)
@@ -169,6 +170,24 @@ impl App {
             .into()
         } else {
             base
+        }
+    }
+
+    /// Offered in the top bar only while there is something to do.
+    fn update_button(&self) -> Element<'_, Message> {
+        let t = self.t();
+        match &self.updating {
+            Updating::Available(update) => {
+                button(text(format!("{} {}", t.update_available, update.version)))
+                    .style(selected)
+                    .on_press(Message::InstallUpdate)
+                    .into()
+            }
+            Updating::Installing(_) => button(t.installing_update).style(quiet).into(),
+            Updating::Installed(_) => {
+                button(t.restart).style(selected).on_press(Message::Restart).into()
+            }
+            _ => space().width(0).into(),
         }
     }
 
@@ -526,6 +545,47 @@ impl App {
         );
         if !self.backend.connected() {
             settings = settings.push(button(t.reconnect).style(quiet).on_press(Message::Reconnect));
+        }
+        settings = settings
+            .push(rule::horizontal(1))
+            .push(label(if self.backend.updates() { t.updates } else { t.version }))
+            .push(
+                text(if self.backend.updates() {
+                    format!("{} {VERSION}", t.version)
+                } else {
+                    VERSION.into()
+                })
+                .size(12),
+            );
+        if self.backend.updates() {
+            let (status, color) = match &self.updating {
+                Updating::Idle => (String::new(), c.muted),
+                Updating::Checking => (t.checking_updates.into(), c.muted),
+                Updating::Current => (t.up_to_date.into(), c.muted),
+                Updating::Available(update) => {
+                    (format!("{}: {}", t.update_available, update.version), c.good)
+                }
+                Updating::Installing(_) => (t.installing_update.into(), c.muted),
+                Updating::Installed(version) => {
+                    (format!("{version} · {}", t.update_installed), c.good)
+                }
+                Updating::Failed(error) => (error.clone(), c.bad),
+            };
+            if !status.is_empty() {
+                settings = settings.push(text(status).size(11).color(color));
+            }
+            let action = match &self.updating {
+                Updating::Available(_) => {
+                    button(t.install_update).style(selected).on_press(Message::InstallUpdate)
+                }
+                Updating::Installing(_) => button(t.install_update).style(quiet),
+                Updating::Installed(_) => {
+                    button(t.restart).style(selected).on_press(Message::Restart)
+                }
+                Updating::Checking => button(t.check_updates).style(quiet),
+                _ => button(t.check_updates).style(quiet).on_press(Message::CheckUpdate),
+            };
+            settings = settings.push(action);
         }
         if let Some((notice, error)) = &self.notice {
             settings =

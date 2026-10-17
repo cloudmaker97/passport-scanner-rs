@@ -55,14 +55,14 @@ scan fixes it. `PASSPORT_SCANNER_KEEP_RAW` makes `scan` also write
 
 ### Desktop workflow
 
-- **+ Neu**, **Vorn scannen**, turn card, **Hinten scannen**. Rescanning a side of
+- **+ New**, **Scan front**, turn card, **Scan back**. Rescanning a side of
   a selected history item replaces that side. Auto-scan alternates front/back (side
-  cannot be inferred); press **+ Neu** if only one face is wanted, or the next card
+  cannot be inferred); press **+ New** if only one face is wanted, or the next card
   becomes the back.
 - Once status moves to processing/MRZ, both images are captured - card can be
   moved. Lift it clear long enough for the 200 ms sensor poll; a stationary card
   is not recaptured.
-- Dark mode default. **Einstellungen**: language (Deutsch/English), light theme,
+- Dark mode default. **Settings**: language (German/English), light theme,
   auto-scan, capture profile, calibration, web, MCP. Language, theme and profile
   persist; history/images are memory-only - export PDFs before closing.
 - Language: saved choice, else the system language (`de*` → German, `en*` →
@@ -88,12 +88,12 @@ scan fixes it. `PASSPORT_SCANNER_KEEP_RAW` makes `scan` also write
 - PDF names: `YYYY-MM-DD--NNN--HH-MM-SS.pdf` (local time; `NNN` = one past the
   highest number of that day already in the target folder, from 001, never
   overwriting; `ui::pdf_name`). Desktop: optional permanent folder
-  (**PDF-Speicherort**, `pdfFolder` in `ui-settings.json`) saves without a
+  (**PDF location**, `pdfFolder` in `ui-settings.json`) saves without a
   dialog; otherwise the save dialog opens in Documents with the generated name.
   Browser: same pattern, day counter continued from the last name in
   `localStorage`.
-- History right-click menu: **Speichern unter …** (always a dialog, ignores the
-  folder; complete documents only) and **Löschen** (`Discard`, removes both sides).
+- History right-click menu: **Save as …** (always a dialog, ignores the
+  folder; complete documents only) and **Delete** (`Discard`, removes both sides).
 
 ### Document crop
 

@@ -4,6 +4,13 @@ on:
   push:
     branches: [main]
   workflow_dispatch:
+  # The release workflow builds the tagged sources and packages them.
+  workflow_call:
+    inputs:
+      tag:
+        description: Release tag to build; also stamped into the programs as their version
+        type: string
+        required: true
 
 env:
   CARGO_TERM_COLOR: always
@@ -15,16 +22,37 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
+        # `asset` must match the archive names the desktop updater looks for.
         include:
           - name: windows
             os: windows-latest
+            asset: passport-scanner-windows-x64
           - name: macos
             os: macos-latest
+            asset: passport-scanner-macos-arm64
           - name: linux
             os: ubuntu-latest
+            asset: passport-scanner-linux-x64
 
     steps:
       - uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.tag || github.ref }}
+
+      # The updater compares this against the latest release, so it must be
+      # SemVer; a tag such as v1.2.0 becomes 1.2.0.
+      - name: Set version from tag
+        if: inputs.tag
+        shell: bash
+        env:
+          TAG: ${{ inputs.tag }}
+        run: |
+          version="${TAG#v}"
+          if ! [[ "$version" =~ ^[0-9]+\.[0-9]+\.[0-9]+(-[0-9A-Za-z.-]+)?$ ]]; then
+            echo "::error::Release tag '$TAG' is not a version such as v1.2.0"
+            exit 1
+          fi
+          echo "PASSPORT_SCANNER_VERSION=$version" >> "$GITHUB_ENV"
 
       # v4l2-sys-mit runs bindgen (libclang); Iced/winit and rfd want the
       # windowing and D-Bus headers.
@@ -74,4 +102,30 @@ jobs:
         with:
           name: passport-scanner-${{ matrix.name }}
           path: dist/
+          if-no-files-found: error
+
+      # Zipped here, not after download: artifacts drop the executable bit,
+      # Python's zipfile keeps it and writes portable '/' paths on Windows too.
+      - name: Package release archive
+        if: inputs.tag
+        shell: bash
+        run: |
+          python=$(command -v python3 || command -v python)
+          cd dist
+          "$python" - "../${{ matrix.asset }}.zip" <<'EOF'
+          import os, sys, zipfile
+          with zipfile.ZipFile(sys.argv[1], "w", zipfile.ZIP_DEFLATED) as archive:
+              for folder, folders, files in os.walk("."):
+                  folders.sort()
+                  for name in sorted(files):
+                      path = os.path.join(folder, name)
+                      archive.write(path, os.path.relpath(path, "."))
+          EOF
+          "$python" -m zipfile -l "../${{ matrix.asset }}.zip"
+
+      - uses: actions/upload-artifact@v4
+        if: inputs.tag
+        with:
+          name: release-${{ matrix.asset }}
+          path: ${{ matrix.asset }}.zip
           if-no-files-found: error

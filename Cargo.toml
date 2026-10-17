@@ -20,7 +20,7 @@ version = "0.1.0"
 edition = "2024"
 rust-version = "1.85"
 license = "MIT"
-repository = "https://github.com/dh/passport-scanner"
+repository = "https://github.com/cloudmaker97/passport-scanner-rs"
 
 [workspace.dependencies]
 passport-scanner-app = { path = "crates/passport-scanner-app" }

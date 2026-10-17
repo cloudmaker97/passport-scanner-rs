@@ -2,38 +2,38 @@
 
 ## The document data
 
-After a scan, the area **Dokumentdaten** (*document data*) shows what was read
+After a scan, the area **Document data** shows what was read
 from the MRZ:
 
 | Field | Meaning |
 |---|---|
-| Dokumenttyp | document type |
-| Familienname | surname |
-| Vornamen | given names |
-| Dokumentnummer | document number |
-| Staatsangehörigkeit | nationality |
-| Geburtsdatum | date of birth |
-| Geschlecht | sex |
-| Gültig bis | date of expiry |
-| Ausstellender Staat | issuing state |
+| Document type | passport, ID card or other travel document |
+| Surname | family name |
+| Given names | first names |
+| Document number | number of the card or passport |
+| Nationality | nationality of the holder |
+| Date of birth | date of birth |
+| Sex | sex as written in the MRZ |
+| Valid until | date of expiry |
+| Issuing state | country that issued the document |
 
 The badge next to it tells you how sure the result is:
 
 | Badge | Meaning |
 |---|---|
-| **MRZ geprüft** | *MRZ checked.* All check digits are correct. You can trust the data. |
-| **MRZ ungeprüft** | *MRZ not checked.* Text was read, but the check digits do not match. Compare it with the document by eye. |
-| **Keine MRZ** | *No MRZ.* Nothing was found. This is normal for the front of most ID cards. |
+| **MRZ verified** | All check digits are correct. You can trust the data. |
+| **MRZ unverified** | Text was read, but the check digits do not match. Compare it with the document by eye. |
+| **No MRZ** | Nothing was found. This is normal for the front of most ID cards. |
 
-**Prüfziffer abweichend** (*check digit differs*) marks a single field whose
+**Check digit mismatch** marks a single field whose
 check digit is wrong.
 
 Names have no check digit. Always compare names with the document.
 
 ## The pictures
 
-Click **Vorderseite** (*front*) or **Rückseite** (*back*) and **Weißlicht**
-(*white light*) or **Infrarot** (*infrared*) to switch between the four
+Click **Front** or **Back** and **White** (white light) or **IR** (infrared)
+to switch between the four
 pictures. If the document lay upside down, the program turns the picture the
 right way up for you.
 
@@ -42,7 +42,7 @@ right way up for you.
 1. Select the document in the list.
 2. Click **PDF**.
 3. If no PDF folder is set (see chapter [Settings](#settings)), choose a folder
-   and click **Speichern** (*save*). With a PDF folder set, the file is saved
+   and click **Save**. With a PDF folder set, the file is saved
    there straight away and the program shows where.
 
 The file name is made up of the date, a running number and the time, for
@@ -52,7 +52,7 @@ overwrites an existing file.
 
 The PDF has four pages: front white, back white, front infrared, back infrared.
 The PDF button only works when all four pictures exist; it shows
-**PDF: 2/4 Bilder** (*2 of 4 pictures*) until then.
+**PDF: 2/4 images** until then.
 
 ## The document list: right-click menu
 
@@ -60,8 +60,8 @@ Right-click a document in the list to open its menu:
 
 | Entry | What it does |
 |---|---|
-| **Speichern unter …** (*save as*) | Saves the PDF to a place you choose, even if a PDF folder is set. Needs all four pictures. |
-| **Löschen** (*delete*) | Removes the document, front and back, from the list. This cannot be undone. |
+| **Save as …** | Saves the PDF to a place you choose, even if a PDF folder is set. Needs all four pictures. |
+| **Delete** | Removes the document, front and back, from the list. This cannot be undone. |
 
 Right-click again, press **Esc** or click a document to close the menu.
 

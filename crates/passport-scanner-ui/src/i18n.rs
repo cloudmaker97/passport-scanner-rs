@@ -158,6 +158,17 @@ pub struct Strings {
     pub failure_bad_setting: &'static str,
     pub failure_orientation: &'static str,
     pub failure_transport: &'static str,
+    pub updates: &'static str,
+    pub version: &'static str,
+    pub check_updates: &'static str,
+    pub checking_updates: &'static str,
+    pub up_to_date: &'static str,
+    pub update_available: &'static str,
+    pub install_update: &'static str,
+    pub installing_update: &'static str,
+    pub update_installed: &'static str,
+    pub restart: &'static str,
+    pub update_failed: &'static str,
 }
 
 impl Strings {
@@ -342,6 +353,17 @@ pub static DE: Strings = Strings {
     failure_bad_setting: "Ungültige Einstellung",
     failure_orientation: "Ausrichtung fehlgeschlagen",
     failure_transport: "Verbindungsfehler",
+    updates: "Updates",
+    version: "Version",
+    check_updates: "Nach Updates suchen",
+    checking_updates: "Suche nach Updates …",
+    up_to_date: "Aktuell",
+    update_available: "Update verfügbar",
+    install_update: "Update installieren",
+    installing_update: "Update wird installiert …",
+    update_installed: "Update installiert · wirkt nach dem Neustart",
+    restart: "Neu starten",
+    update_failed: "Update fehlgeschlagen",
 };
 
 pub static EN: Strings = Strings {
@@ -457,6 +479,17 @@ pub static EN: Strings = Strings {
     failure_bad_setting: "Invalid setting",
     failure_orientation: "Orientation failed",
     failure_transport: "Connection error",
+    updates: "Updates",
+    version: "Version",
+    check_updates: "Check for updates",
+    checking_updates: "Checking for updates …",
+    up_to_date: "Up to date",
+    update_available: "Update available",
+    install_update: "Install update",
+    installing_update: "Installing update …",
+    update_installed: "Update installed · takes effect after a restart",
+    restart: "Restart",
+    update_failed: "Update failed",
 };
 
 #[cfg(test)]

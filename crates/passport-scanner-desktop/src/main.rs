@@ -2,12 +2,14 @@
 //! Native window around the shared interface. Owns the scanner session in-process.
 
 mod store;
+mod update;
 
 use iced::Task;
 use passport_scanner_app::desktop_host::Host;
 use passport_scanner_protocol::{Command, Event};
 use passport_scanner_ui::{
-    App, Backend, ExportOutcome, ExportRequest, Inbound, LocalServices, Message, Offline,
+    App, Backend, ExportOutcome, ExportRequest, Inbound, LocalServices, Message, Offline, Update,
+    VERSION,
     mock::Mock,
     pdf_name::{self, Stamp},
 };
@@ -17,6 +19,9 @@ use std::{
 };
 
 fn main() -> iced::Result {
+    update::clean_up();
+    // Kept before an update can rename the running executable.
+    let exe = std::env::current_exe().ok();
     let icon_pixels = ::image::load_from_memory(include_bytes!("../../../icon.png"))
         .expect("the embedded application icon is a valid PNG")
         .into_rgba8();
@@ -26,19 +31,22 @@ fn main() -> iced::Result {
         icon_pixels.height(),
     )
     .expect("the decoded application icon has valid RGBA dimensions");
-    iced::application(|| App::new(backend(), Box::new(store::File)), App::update, App::view)
-        .title(passport_scanner_ui::TITLE)
-        .theme(App::theme)
-        .settings(passport_scanner_ui::settings())
-        .subscription(App::subscription)
-        .window(iced::window::Settings {
-            size: iced::Size::new(1440.0, 960.0),
-            min_size: Some(iced::Size::new(1120.0, 760.0)),
-            icon: Some(icon),
-            ..Default::default()
-        })
-        .centered()
-        .run()
+    let result =
+        iced::application(|| App::new(backend(), Box::new(store::File)), App::update, App::view)
+            .title(passport_scanner_ui::TITLE)
+            .theme(App::theme)
+            .settings(passport_scanner_ui::settings())
+            .subscription(App::subscription)
+            .window(iced::window::Settings {
+                size: iced::Size::new(1440.0, 960.0),
+                min_size: Some(iced::Size::new(1120.0, 760.0)),
+                icon: Some(icon),
+                ..Default::default()
+            })
+            .centered()
+            .run();
+    update::restart_if_requested(exe);
+    result
 }
 
 /// `PASSPORT_SCANNER_UI_MOCK=1` simulates a scanner; a render session never opens one.
@@ -178,6 +186,26 @@ impl Backend for HostBackend {
 
     fn services(&self) -> Option<&dyn LocalServices> {
         self.host.as_ref().map(|session| session as &dyn LocalServices)
+    }
+
+    fn updates(&self) -> bool {
+        update::supported()
+    }
+
+    fn check_update(&self) -> Task<Message> {
+        Task::perform(update::off_thread(|| update::check(VERSION)), Message::UpdateChecked)
+    }
+
+    fn install_update(&self, update: Update) -> Task<Message> {
+        Task::perform(
+            update::off_thread(move || update::install(&update)),
+            Message::UpdateInstalled,
+        )
+    }
+
+    fn restart(&self) -> Task<Message> {
+        update::request_restart();
+        iced::exit()
     }
 
     fn saved_profile(&self) -> Option<String> {

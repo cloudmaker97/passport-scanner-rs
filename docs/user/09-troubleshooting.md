@@ -2,16 +2,16 @@
 
 | Problem | What to do |
 |---|---|
-| **Nicht verbunden** (*not connected*) | Check the USB cable. Close other scanner programs. Click **Erneut verbinden** (*connect again*). |
-| **Der Scanner-Dienst ist nicht gestartet.** (*scanner service not started*) | Close the program and start it again. |
-| The scan does not start by itself | Switch on **Automatisch scannen**, or click **Vorn scannen** / **Hinten scannen**. Lift the card off fully between scans. |
-| **Keine MRZ** on the back | Put the document straight and flat, clean the glass, scan again. Check that Tesseract is installed. |
-| **MRZ ungeprüft** | Scan again. If it stays, compare the data with the document by eye. |
-| Pictures too dark or uneven | Measure your own calibration (chapter [Calibration](#calibration)). For ID cards try the profile **Ausweis · heller**. |
-| **Kalibrierung fehlt** | Measure your own calibration, or install the factory calibration. |
+| **Not connected** | Check the USB cable. Close other scanner programs. Click **Reconnect**. |
+| **The scanner service is not running.** | Close the program and start it again. |
+| The scan does not start by itself | Switch on **Scan automatically**, or click **Scan front** / **Scan back**. Lift the card off fully between scans. |
+| **No MRZ** on the back | Put the document straight and flat, clean the glass, scan again. Check that Tesseract is installed. |
+| **MRZ unverified** | Scan again. If it stays, compare the data with the document by eye. |
+| Pictures too dark or uneven | Measure your own calibration (chapter [Calibration](#calibration)). For ID cards try the profile **Identity card · brighter**. |
+| **Calibration missing** | Measure your own calibration, or install the factory calibration. |
 | The PDF button does not work | All four pictures are needed. Scan the missing side. |
 | My documents are gone | Documents are not kept after closing. Save PDFs before closing. |
-| The web page does not open | Switch on **Weboberfläche** in the settings and keep the program window open. |
+| The web page does not open | Switch on **Web interface** in the settings and keep the program window open. |
 
 ## Reporting a problem
 

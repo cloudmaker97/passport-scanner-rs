@@ -21,6 +21,10 @@ rfd = { version = "0.17", default-features = false }
 sys-locale = "0.3"
 time = { version = "0.3", features = ["local-offset"] }
 dirs = "6"
+ureq = { version = "3", default-features = false, features = ["rustls"] }
+sha2 = "0.10"
+semver = "1"
+zip = { version = "9", default-features = false, features = ["deflate-flate2-zlib-rs"] }
 
 # rfd needs a dialog backend on Linux; the XDG portal avoids linking GTK.
 [target.'cfg(target_os = "linux")'.dependencies]

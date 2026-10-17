@@ -23,14 +23,15 @@ Everything happens on your own computer. Nothing is uploaded anywhere.
 | Word | Meaning |
 |---|---|
 | Document | One card or passport, with its front and back. |
-| Side | The front (*Vorderseite*) or the back (*Rückseite*). |
-| White light | A normal colour picture (*Weißlicht*). |
-| Infrared | A grey picture taken with infrared light (*Infrarot*). Security features look different in it. |
+| Side | The front or the back. |
+| White light | A normal colour picture. |
+| Infrared | A grey picture taken with infrared light. Security features look different in it. |
 | MRZ | Machine-readable zone. The lines of text with `<` characters. |
 | Calibration | A measurement that makes the picture evenly bright from edge to edge. |
 
-The program window is in German. This guide gives the German button name
-first, in **bold**, and the English meaning after it.
+The program window can be shown in English or German. This guide uses the
+English labels, in **bold**. To switch the window to English, see chapter
+[Settings](#settings).
 
 ## Not a Plustek product
 

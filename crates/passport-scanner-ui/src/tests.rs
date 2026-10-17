@@ -299,6 +299,8 @@ struct Scripted {
     exported_to: Rc<RefCell<Option<Option<String>>>>,
     requests: Rc<RefCell<Vec<ExportRequest>>>,
     autosave: bool,
+    updates: bool,
+    installed: Rc<RefCell<Vec<Update>>>,
 }
 
 impl Backend for Scripted {
@@ -327,6 +329,52 @@ impl Backend for Scripted {
     fn saves_automatically(&self) -> bool {
         self.autosave
     }
+    fn updates(&self) -> bool {
+        self.updates
+    }
+    fn install_update(&self, update: Update) -> Task<Message> {
+        self.installed.borrow_mut().push(update);
+        Task::none()
+    }
+}
+
+#[test]
+fn updates_are_looked_for_once_installed_on_request_and_then_restart() {
+    let installed = Rc::new(RefCell::new(Vec::new()));
+    let mut app = App::new(
+        Box::new(Scripted { updates: true, installed: installed.clone(), ..Default::default() }),
+        Box::<Memory>::default(),
+    );
+    let _ = app.update(Message::Tick);
+    assert_eq!(app.updating, Updating::Checking);
+    let update = Update { version: "0.2.0".into(), download: "archive".into(), digest: None };
+    let _ = app.update(Message::UpdateChecked(Ok(Some(update.clone()))));
+    // Only the first tick looks; later ticks leave the offer alone.
+    let _ = app.update(Message::Tick);
+    assert_eq!(app.updating, Updating::Available(update.clone()));
+    let _ = app.update(Message::Restart);
+    assert_eq!(app.updating, Updating::Available(update.clone()));
+    let _ = app.update(Message::InstallUpdate);
+    assert_eq!(*installed.borrow(), vec![update.clone()]);
+    let _ = app.update(Message::InstallUpdate);
+    assert_eq!(installed.borrow().len(), 1, "installing twice at once");
+    let _ = app.update(Message::UpdateInstalled(Err("disk full".into())));
+    assert!(matches!(&app.updating, Updating::Failed(error) if error.ends_with("disk full")));
+    let _ = app.update(Message::UpdateChecked(Ok(Some(update.clone()))));
+    let _ = app.update(Message::InstallUpdate);
+    let _ = app.update(Message::UpdateInstalled(Ok(())));
+    assert_eq!(app.updating, Updating::Installed("0.2.0".into()));
+    // Nothing to look for while an installed update waits for its restart.
+    let _ = app.update(Message::CheckUpdate);
+    assert_eq!(app.updating, Updating::Installed("0.2.0".into()));
+}
+
+#[test]
+fn a_backend_without_updates_never_looks() {
+    let mut app = App::new(Box::new(Scripted::default()), Box::<Memory>::default());
+    let _ = app.update(Message::Tick);
+    let _ = app.update(Message::CheckUpdate);
+    assert_eq!(app.updating, Updating::Idle);
 }
 
 #[test]

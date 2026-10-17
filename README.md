@@ -59,6 +59,24 @@ cargo test
 cargo clippy --all-targets
 ```
 
+## Releases
+
+Publishing a GitHub release with a version tag such as `v0.2.0` starts
+`.github/workflows/release.yml`. It builds Windows (x64), macOS (Apple silicon)
+and Linux (x64), stamps the tag into the programs as their version, and attaches
+to the release:
+
+- `passport-scanner-windows-x64.zip`, `passport-scanner-macos-arm64.zip`,
+  `passport-scanner-linux-x64.zip` - the program folder, user guide included
+- `Passport-Scanner-User-Guide.pdf` and `LICENSE`
+
+The desktop program asks GitHub for the latest release when it starts and
+offers to install it when it is newer. It downloads its platform's archive,
+checks it against the SHA-256 digest GitHub reports, replaces the program files
+and restarts on request. The archive names above are what it looks for; change
+them in `build.yml` and `crates/passport-scanner-desktop/src/update.rs`
+together. Development builds never update themselves.
+
 ### Boundaries kept, deliberately
 
 - Decompilation was used only where observation could not answer the question,
@@ -94,6 +112,6 @@ manufacturer's software whose behaviour it had to match. So, explicitly:
 ## Documentation
 
 - [docs/user/](docs/user/) - user guide; each release attaches it as one PDF
-  (`scripts/build-user-guide.sh`)
+  and puts it in every program archive (`scripts/build-user-guide.sh`)
 - [docs/implementation/](docs/implementation/) - protocol, calibration and
   recognition internals

@@ -1,7 +1,10 @@
 name: Release
 
-# Builds the user guide from docs/user/ into one PDF and attaches it to the
-# release. Runs when a release is published; can be started by hand for a tag.
+# When a release is published: builds the programs for Windows, macOS and
+# Linux and the user guide PDF, puts the guide into each program archive and
+# attaches the archives, the guide and the licence to the release. The desktop
+# program finds its archive there to update itself. Can be started by hand for
+# an existing release tag.
 
 on:
   release:
@@ -9,7 +12,7 @@ on:
   workflow_dispatch:
     inputs:
       tag:
-        description: Release tag to attach the guide to
+        description: Release tag to build and attach to
         required: true
 
 permissions:
@@ -42,7 +45,57 @@ jobs:
           path: dist/Passport-Scanner-User-Guide.pdf
           if-no-files-found: error
 
-      - name: Attach to release
+  build:
+    name: Programs
+    permissions:
+      contents: read
+    uses: ./.github/workflows/build.yml
+    with:
+      tag: ${{ github.event.release.tag_name || inputs.tag }}
+
+  publish:
+    name: Attach to release
+    needs: [user-guide, build]
+    runs-on: ubuntu-24.04
+    env:
+      TAG: ${{ github.event.release.tag_name || inputs.tag }}
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          path: release
+          pattern: release-*
+          merge-multiple: true
+
+      - uses: actions/download-artifact@v4
+        with:
+          name: user-guide
+          path: release
+
+      # Each archive is the whole program folder; the guide belongs in it.
+      - name: Add the guide to each archive
+        working-directory: release
+        run: |
+          for archive in passport-scanner-*.zip; do
+            python3 - "$archive" <<'EOF'
+          import sys, zipfile
+          with zipfile.ZipFile(sys.argv[1], "a", zipfile.ZIP_DEFLATED) as archive:
+              archive.write("Passport-Scanner-User-Guide.pdf")
+          EOF
+          done
+          ls -la
+
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ env.TAG }}
+          path: source
+          sparse-checkout: LICENSE
+          sparse-checkout-cone-mode: false
+
+      - name: Upload to the release
         env:
           GH_TOKEN: ${{ github.token }}
-        run: gh release upload "$TAG" dist/Passport-Scanner-User-Guide.pdf LICENSE --clobber
+        run: |
+          gh release upload "$TAG" --repo "$GITHUB_REPOSITORY" --clobber \
+            release/passport-scanner-*.zip \
+            release/Passport-Scanner-User-Guide.pdf \
+            source/LICENSE

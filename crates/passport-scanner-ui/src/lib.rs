@@ -14,7 +14,7 @@ pub mod pdf_name;
 pub mod preferences;
 mod view;
 
-pub use backend::{Backend, ExportOutcome, ExportRequest, Inbound, LocalServices, Offline};
+pub use backend::{Backend, ExportOutcome, ExportRequest, Inbound, LocalServices, Offline, Update};
 pub use i18n::Locale;
 pub use preferences::{Appearance, Memory, Preferences, Store};
 
@@ -27,6 +27,11 @@ use passport_scanner_protocol::{Command, Device, Event, Scan, Side, Source, Stag
 use std::{collections::HashMap, time::Duration};
 
 pub const TITLE: &str = "Passport Scanner";
+/// The release build stamps its tag through `PASSPORT_SCANNER_VERSION`.
+pub const VERSION: &str = match option_env!("PASSPORT_SCANNER_VERSION") {
+    Some(version) if !version.is_empty() => version,
+    _ => env!("CARGO_PKG_VERSION"),
+};
 /// Monospace face for the MRZ; browsers expose no system fonts to the canvas.
 pub const MONO_FONT: iced::Font = iced::Font::with_name("Fira Mono");
 const MONO_FONT_BYTES: &[u8] = include_bytes!("../assets/FiraMono-Medium.ttf");
@@ -116,6 +121,21 @@ impl Status {
     }
 }
 
+/// Where self-updating stands.
+#[derive(Debug, Clone, PartialEq, Eq)]
+enum Updating {
+    /// Not looked yet, or the backend cannot update.
+    Idle,
+    Checking,
+    Current,
+    Available(Update),
+    Installing(Update),
+    /// Installed; runs after a restart.
+    Installed(String),
+    /// The last check or installation failed; the person may try again.
+    Failed(String),
+}
+
 #[derive(Debug, Clone)]
 pub enum Message {
     Tick,
@@ -149,6 +169,11 @@ pub enum Message {
     FolderChosen(Option<String>),
     ResetFolder,
     DismissNotice,
+    CheckUpdate,
+    UpdateChecked(Result<Option<Update>, String>),
+    InstallUpdate,
+    UpdateInstalled(Result<(), String>),
+    Restart,
     #[cfg(feature = "render-smoke")]
     Screenshot(iced::window::Screenshot),
 }
@@ -190,6 +215,9 @@ pub struct App {
     appearance: Appearance,
     locale: Locale,
     pdf_folder: Option<String>,
+    updating: Updating,
+    /// The automatic look for a newer release happens once per start.
+    update_checked: bool,
     #[cfg(feature = "render-smoke")]
     smoke_ticks: u8,
     #[cfg(feature = "render-smoke")]
@@ -273,6 +301,8 @@ impl App {
             appearance: Appearance::default(),
             locale,
             pdf_folder: None,
+            updating: Updating::Idle,
+            update_checked: false,
             #[cfg(feature = "render-smoke")]
             smoke_ticks: 0,
             #[cfg(feature = "render-smoke")]
@@ -411,6 +441,10 @@ impl App {
                             .and_then(iced::window::screenshot)
                             .map(Message::Screenshot);
                     }
+                }
+                if !self.update_checked {
+                    self.update_checked = true;
+                    return Task::batch([self.auto_save(), self.check_update()]);
                 }
                 return self.auto_save();
             }
@@ -563,6 +597,36 @@ impl App {
                 self.save_preferences();
             }
             Message::DismissNotice => self.notice = None,
+            Message::CheckUpdate => return self.check_update(),
+            Message::UpdateChecked(result) => {
+                self.updating = match result {
+                    Ok(Some(update)) => Updating::Available(update),
+                    Ok(None) => Updating::Current,
+                    Err(error) => Updating::Failed(error),
+                };
+            }
+            Message::InstallUpdate => {
+                if let Updating::Available(update) = &self.updating {
+                    let update = update.clone();
+                    self.updating = Updating::Installing(update.clone());
+                    return self.backend.install_update(update);
+                }
+            }
+            Message::UpdateInstalled(result) => {
+                if let Updating::Installing(update) = &self.updating {
+                    self.updating = match result {
+                        Ok(()) => Updating::Installed(update.version.clone()),
+                        Err(error) => {
+                            Updating::Failed(format!("{}: {error}", self.t().update_failed))
+                        }
+                    };
+                }
+            }
+            Message::Restart => {
+                if matches!(self.updating, Updating::Installed(_)) {
+                    return self.backend.restart();
+                }
+            }
             #[cfg(feature = "render-smoke")]
             Message::Screenshot(screenshot) => {
                 if let Some(path) = self.smoke_path.take() {
@@ -590,6 +654,20 @@ impl App {
             _ => {}
         }
         Task::none()
+    }
+
+    /// Look for a newer release unless one is being looked for or installed.
+    fn check_update(&mut self) -> Task<Message> {
+        if !self.backend.updates()
+            || matches!(
+                self.updating,
+                Updating::Checking | Updating::Installing(_) | Updating::Installed(_)
+            )
+        {
+            return Task::none();
+        }
+        self.updating = Updating::Checking;
+        self.backend.check_update()
     }
 
     /// Export one complete document; without a folder, `ask` decides whether a

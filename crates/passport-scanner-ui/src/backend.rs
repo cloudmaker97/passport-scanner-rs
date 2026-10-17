@@ -45,6 +45,16 @@ pub enum ExportOutcome {
     Unavailable,
 }
 
+/// A newer release that can replace the running program.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct Update {
+    pub version: String,
+    /// The release archive for this platform.
+    pub download: String,
+    /// `sha256:<hex>` as the release reports it, when it does.
+    pub digest: Option<String>,
+}
+
 pub trait Backend: std::fmt::Debug {
     /// Open the session; idempotent. Returns events describing the current state.
     fn connect(&mut self) -> Result<Vec<Event>, String>;
@@ -81,6 +91,23 @@ pub trait Backend: std::fmt::Debug {
     /// A backend that only simulates a scanner says so in the interface.
     fn is_demo(&self) -> bool {
         false
+    }
+    /// Whether this program can update itself from its releases.
+    fn updates(&self) -> bool {
+        false
+    }
+    /// Look for a newer release; finishes with [`Message::UpdateChecked`].
+    fn check_update(&self) -> Task<Message> {
+        Task::none()
+    }
+    /// Put the release in place of this program's files; finishes with
+    /// [`Message::UpdateInstalled`]. Takes effect on the next start.
+    fn install_update(&self, _update: Update) -> Task<Message> {
+        Task::none()
+    }
+    /// Close and start the installed release.
+    fn restart(&self) -> Task<Message> {
+        Task::none()
     }
 }
 
