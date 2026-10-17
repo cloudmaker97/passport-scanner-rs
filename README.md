@@ -7,17 +7,21 @@ Plustek SecureScan ID document scanners, in Rust. It is not derived from,
 and shares no code with, the manufacturer's software. It was written to 
 make these scanners usable from Rust, from other languages and from Linux. 
 
+![Passport Scanner reading a demo identity card](docs/repository/screenshots/hero.png)
+
 ## Compatibility
 
-This software works with Plustek SecureScan series scanners. It is developed and
-tested against the X-Mini 200. The model table covers all eleven product ids the 
-family is known to use, but only the X-Mini 2000 has been verified against hardware.
+This software works with Plustek SecureScan series scanners. It is developed and tested against the X-Mini 200. The model table covers all eleven product ids the family is known to use, but only the X-Mini 2000 has been verified against hardware.
 
 > **Not a Plustek product.** This project is not made, supplied, endorsed,
 > sponsored or supported by Plustek. Do not contact Plustek about it. See
 > [Names and trade marks](#names-and-trade-marks).
 
 ## Features
+
+![Fields read from the MRZ, light theme](docs/repository/screenshots/light.png)
+
+![The same card under white light and infrared](docs/repository/screenshots/infrared.png)
 
 - **Capture:** white and infrared light, 2592×1944, both sides of a document
 - **Device control:** lamps, buzzer, presence sensors, registers, EEPROM
