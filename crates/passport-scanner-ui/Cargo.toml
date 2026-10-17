@@ -21,6 +21,10 @@ base64 = "0.22"
 [target.'cfg(not(target_arch = "wasm32"))'.dependencies]
 iced = { version = "0.14", default-features = false, features = ["tokio"] }
 
+# Without a windowing backend softbuffer (under tiny-skia) has nothing to draw to on Linux.
+[target.'cfg(target_os = "linux")'.dependencies]
+iced = { version = "0.14", default-features = false, features = ["x11", "wayland"] }
+
 [dev-dependencies]
 # Exercise the exact EXIF-aware loader used by Iced's tiny-skia renderer.
 iced_graphics = { version = "0.14", features = ["image"] }

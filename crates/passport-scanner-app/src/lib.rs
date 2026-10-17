@@ -17,8 +17,14 @@ pub mod placement;
 pub mod preferences;
 pub mod service;
 
+use passport_scanner_core::{Error, Frame, Result};
+
+// Opening a scanner needs a transport, which only Windows has so far.
+#[cfg(windows)]
 use passport_scanner_capture::CameraSource;
-use passport_scanner_core::{Error, Frame, LightSource, Result};
+#[cfg(windows)]
+use passport_scanner_core::LightSource;
+#[cfg(windows)]
 use passport_scanner_device::{Model, Scanner, protocol::VENDOR_ID};
 
 /// The capture resolution to ask the camera for.
