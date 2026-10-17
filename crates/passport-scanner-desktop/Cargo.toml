@@ -22,6 +22,10 @@ sys-locale = "0.3"
 time = { version = "0.3", features = ["local-offset"] }
 dirs = "6"
 
+# rfd needs a dialog backend on Linux; the XDG portal avoids linking GTK.
+[target.'cfg(target_os = "linux")'.dependencies]
+rfd = { version = "0.17", default-features = false, features = ["xdg-portal"] }
+
 [build-dependencies]
 winresource = "0.1"
 
