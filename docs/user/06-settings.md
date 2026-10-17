@@ -19,17 +19,6 @@ choice.
 Starts a scan as soon as a document is put on the glass. See chapter
 [Scanning a Document](#scanning-a-document).
 
-## Capture profile
-
-| Profile | Use it for |
-|----|--------|
-| **General** | All documents. This is the default. |
-| **Identity card** | ID cards, with the scanner's special ID light. |
-| **Identity card · brighter** | Like *Identity card*, but brighter. Use it if ID pictures look too dark. |
-
-The program remembers your choice. The ID profiles need the factory ID
-calibration; without it the program refuses the switch and tells you why.
-
 ## Beep
 
 Beeps when a scan is finished.

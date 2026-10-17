@@ -7,7 +7,7 @@
 | The scan does not start by itself | Switch on **Scan automatically**, or click **Scan front** / **Scan back**. Lift the card off fully between scans. |
 | **No MRZ** on the back | Put the document straight and flat, clean the glass, scan again. Check that Tesseract is installed. |
 | **MRZ unverified** | Scan again. If it stays, compare the data with the document by eye. |
-| Pictures too dark or uneven | Measure your own calibration (chapter [Calibration](#calibration)). For ID cards try the profile **Identity card · brighter**. |
+| Pictures too dark or uneven | Measure your own calibration (chapter [Calibration](#calibration)). |
 | **Calibration missing** | Measure your own calibration, or install the factory calibration. |
 | The PDF button does not work | All four pictures are needed. Scan the missing side. |
 | My documents are gone | Documents are not kept after closing. Save PDFs before closing. |

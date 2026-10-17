@@ -84,10 +84,6 @@ pub trait Backend: std::fmt::Debug {
     fn services(&self) -> Option<&dyn LocalServices> {
         None
     }
-    /// The capture profile the session will start with, if known before it reports.
-    fn saved_profile(&self) -> Option<String> {
-        None
-    }
     /// A backend that only simulates a scanner says so in the interface.
     fn is_demo(&self) -> bool {
         false

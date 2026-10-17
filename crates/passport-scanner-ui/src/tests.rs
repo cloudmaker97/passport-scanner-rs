@@ -1,10 +1,8 @@
 use super::*;
 use std::{cell::RefCell, rc::Rc};
 
-fn app(profile: Profile) -> App {
-    let mut app = App::unconnected(Box::new(Offline), Box::<Memory>::default());
-    app.profile = profile;
-    app
+fn app() -> App {
+    App::unconnected(Box::new(Offline), Box::<Memory>::default())
 }
 
 fn scan() -> Scan {
@@ -23,7 +21,7 @@ fn scan() -> Scan {
 
 #[test]
 fn new_document_state_clears_selection_without_losing_history() {
-    let mut desktop = app(Profile::General);
+    let mut desktop = app();
     desktop.receive(Event::ScanCompleted { scan: Box::new(scan()) });
     assert!(desktop.selected_document().is_some());
     desktop.receive(Event::State { device: None, scans: vec![scan()], selected: None });
@@ -54,7 +52,7 @@ fn pictured_scan(id: &str, document: &str, side: Side) -> Scan {
 
 #[test]
 fn selecting_history_preserves_every_unchanged_renderer_handle() {
-    let mut desktop = app(Profile::General);
+    let mut desktop = app();
     let scans: Vec<_> = (0..40)
         .map(|index| pictured_scan(&format!("s{index}"), &format!("d{index}"), Side::Front))
         .collect();
@@ -80,7 +78,7 @@ fn selecting_history_preserves_every_unchanged_renderer_handle() {
 
 #[test]
 fn history_reuses_held_scans_and_their_handles_without_images_on_the_wire() {
-    let mut desktop = app(Profile::General);
+    let mut desktop = app();
     let scans: Vec<_> = (0..3)
         .map(|index| pictured_scan(&format!("s{index}"), &format!("d{index}"), Side::Front))
         .collect();
@@ -114,7 +112,7 @@ fn history_naming_an_unknown_scan_asks_for_the_full_state() {
 
 #[test]
 fn changed_and_invalid_replacements_never_show_stale_images() {
-    let mut desktop = app(Profile::General);
+    let mut desktop = app();
     let mut scan = pictured_scan("s1", "d1", Side::Front);
     desktop.receive(Event::ScanCompleted { scan: Box::new(scan.clone()) });
     let white = desktop.images["s1:0"].id();
@@ -143,7 +141,7 @@ fn changed_and_invalid_replacements_never_show_stale_images() {
 
 #[test]
 fn retake_and_discard_evict_only_retired_scan_images() {
-    let mut desktop = app(Profile::General);
+    let mut desktop = app();
     let front = pictured_scan("front", "d1", Side::Front);
     let back = pictured_scan("back", "d1", Side::Back);
     desktop.receive(Event::State {
@@ -168,7 +166,7 @@ fn retake_and_discard_evict_only_retired_scan_images() {
 
 #[test]
 fn capture_atomically_carries_side_and_selected_document_or_new_pair() {
-    let mut desktop = app(Profile::General);
+    let mut desktop = app();
     assert_eq!(
         desktop.capture_command(Side::Front),
         Command::CaptureSide { side: Side::Front, document: None }
@@ -187,7 +185,7 @@ fn capture_atomically_carries_side_and_selected_document_or_new_pair() {
 
 #[test]
 fn recognition_progress_keeps_controls_busy_until_completion() {
-    let mut desktop = app(Profile::General);
+    let mut desktop = app();
     desktop.receive(Event::ScanProgress { stage: Stage::Recognising, source: None });
     assert!(desktop.busy);
     assert_eq!(desktop.status.label(&i18n::DE), "MRZ lesen …");
@@ -197,7 +195,7 @@ fn recognition_progress_keeps_controls_busy_until_completion() {
 
 #[test]
 fn calibration_completion_clears_progress_label() {
-    let mut desktop = app(Profile::General);
+    let mut desktop = app();
     desktop.profile_ready = true;
     desktop.busy = true;
     desktop.status = Status::Calibrating;
@@ -208,24 +206,8 @@ fn calibration_completion_clears_progress_label() {
 }
 
 #[test]
-fn failed_profile_change_does_not_claim_requested_profile_ready() {
-    let mut desktop = app(Profile::General);
-    desktop.profile_pending = true;
-    desktop.receive(Event::Failed {
-        code: "profileChangeFailed".into(),
-        message: "Missing calibration".into(),
-    });
-    assert_eq!(desktop.profile, Profile::General);
-    assert!(!desktop.profile_pending);
-    assert!(!desktop.profile_ready);
-    let (notice, error) = desktop.notice.as_ref().unwrap();
-    assert!(error);
-    assert_eq!(notice, "Profilwechsel fehlgeschlagen: Missing calibration");
-}
-
-#[test]
 fn settings_and_preview_switches_preserve_document_and_capture_target() {
-    let mut desktop = app(Profile::Bright);
+    let mut desktop = app();
     desktop.receive(Event::ScanCompleted { scan: Box::new(scan()) });
     assert_eq!(desktop.appearance, Appearance::Dark);
     assert!(desktop.theme().palette().background.r < 0.1);
@@ -240,14 +222,13 @@ fn settings_and_preview_switches_preserve_document_and_capture_target() {
     assert_eq!(desktop.preview_source, Source::Infrared);
     assert_eq!(desktop.capture_command(Side::Back), expected);
     assert_eq!(desktop.documents.0.len(), 1);
-    assert_eq!(desktop.profile, Profile::Bright);
     desktop.appearance = Appearance::Light;
     assert!(desktop.theme().palette().background.r > 0.9);
 }
 
 #[test]
 fn new_capture_selects_its_side_and_refresh_preserves_preview_choice() {
-    let mut desktop = app(Profile::General);
+    let mut desktop = app();
     let mut back = scan();
     back.side = Side::Back;
     desktop.receive(Event::ScanCompleted { scan: Box::new(back.clone()) });
@@ -264,7 +245,7 @@ fn new_capture_selects_its_side_and_refresh_preserves_preview_choice() {
 
 #[test]
 fn offline_backend_never_enables_scanning_even_on_reconnect() {
-    let mut desktop = app(Profile::General);
+    let mut desktop = app();
     desktop.receive(Event::State {
         device: None,
         scans: vec![scan()],

@@ -207,12 +207,6 @@ impl Backend for HostBackend {
         update::request_restart();
         iced::exit()
     }
-
-    fn saved_profile(&self) -> Option<String> {
-        let path = passport_scanner_app::preferences::path().ok()?;
-        let saved = passport_scanner_app::preferences::load_from(&path).ok()?;
-        Some(passport_scanner_app::preferences::profile_name(saved).to_owned())
-    }
 }
 
 /// Local wall-clock time; UTC if the platform cannot say what the offset is.

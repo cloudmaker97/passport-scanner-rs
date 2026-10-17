@@ -63,7 +63,7 @@ scan fixes it. `PASSPORT_SCANNER_KEEP_RAW` makes `scan` also write
   moved. Lift it clear long enough for the 200 ms sensor poll; a stationary card
   is not recaptured.
 - Dark mode default. **Settings**: language (German/English), light theme,
-  auto-scan, capture profile, calibration, web, MCP. Language, theme and profile
+  auto-scan, calibration, web, MCP. Language and theme
   persist; history/images are memory-only - export PDFs before closing.
 - Language: saved choice, else the system language (`de*` → German, `en*` →
   English, anything else German). Desktop keeps it in `ui-settings.json` beside
@@ -143,9 +143,9 @@ reflections stay excluded. Real capture: white 1158×1118 → 1751×1119 (IR
 | `identity` | A3 + ID AWB + 3FEC, bridge ID light | `Calibration_General_ID.shd` |
 | `identity-bright` | as identity, white trim ×1.2 rounded once (43→52), non-compounding | same |
 
-Precedence: CLI `--profile` > `PASSPORT_SCANNER_PROFILE` > saved selection
-(`%LOCALAPPDATA%\Passport Scanner\settings.json`) > General. Overrides don't
-rewrite the saved choice. Calibration is validated before activation; missing ID
+The desktop app and `serve` always capture with `general`; the interface offers
+no choice. The other profiles remain for the diagnostic tools (`scan --profile`,
+`survey profile=…`). Calibration is validated before activation; missing ID
 calibration refuses the switch - General shading is never substituted. Changes
 run between captures; while disconnected the request is pending and saved only
 after validation. Own calibration (measure/delete) only under General. Missing

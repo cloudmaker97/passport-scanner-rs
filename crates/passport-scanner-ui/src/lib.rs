@@ -48,34 +48,6 @@ pub fn settings() -> iced::Settings {
     }
 }
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
-pub enum Profile {
-    General,
-    Identity,
-    Bright,
-}
-
-impl Profile {
-    pub const ALL: [Self; 3] = [Self::General, Self::Identity, Self::Bright];
-    pub fn key(self) -> &'static str {
-        match self {
-            Self::General => "general",
-            Self::Identity => "identity",
-            Self::Bright => "identity-bright",
-        }
-    }
-    pub fn from_key(value: &str) -> Option<Self> {
-        Self::ALL.into_iter().find(|p| p.key() == value)
-    }
-    fn label(self, t: &Strings) -> &'static str {
-        match self {
-            Self::General => t.profile_general,
-            Self::Identity => t.profile_identity,
-            Self::Bright => t.profile_bright,
-        }
-    }
-}
-
 /// What the status bar says. Kept symbolic so a language switch relabels it.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 enum Status {
@@ -83,7 +55,6 @@ enum Status {
     NotConnected,
     ScannerDisconnected,
     CapturingSide(Side),
-    LoadingProfile,
     Calibrating,
     Ready,
     CalibrationMissing,
@@ -101,7 +72,6 @@ impl Status {
             Self::NotConnected => t.not_connected.into(),
             Self::ScannerDisconnected => t.scanner_disconnected.into(),
             Self::CapturingSide(side) => t.capturing(side),
-            Self::LoadingProfile => t.loading_profile.into(),
             Self::Calibrating => t.calibrating.into(),
             Self::Ready => t.ready.into(),
             Self::CalibrationMissing => t.calibration_missing.into(),
@@ -144,7 +114,6 @@ pub enum Message {
     Capture(Side),
     NewDocument,
     Select(String),
-    Profile(Profile),
     Auto(bool),
     Buzzer(bool),
     Web(bool),
@@ -189,9 +158,7 @@ pub struct App {
     selected: Option<String>,
     images: HashMap<String, image::Handle>,
     device: Option<Device>,
-    profile: Profile,
     profile_ready: bool,
-    profile_pending: bool,
     calibration: Option<String>,
     busy: bool,
     status: Status,
@@ -269,8 +236,6 @@ impl App {
     }
 
     fn unconnected(backend: Box<dyn Backend>, store: Box<dyn Store>) -> Self {
-        let profile =
-            backend.saved_profile().and_then(|p| Profile::from_key(&p)).unwrap_or(Profile::General);
         let locale = Locale::detect(&store.system_locale().unwrap_or_default());
         Self {
             backend,
@@ -279,9 +244,7 @@ impl App {
             selected: None,
             images: HashMap::new(),
             device: None,
-            profile,
             profile_ready: false,
-            profile_pending: false,
             calibration: None,
             busy: false,
             status: Status::Connecting,
@@ -472,15 +435,6 @@ impl App {
                 if let Some((id, side)) = scan_id {
                     self.preview_side = side;
                     self.send(Command::SelectScan { id });
-                }
-            }
-            Message::Profile(profile) if !self.busy && !self.profile_pending => {
-                if self.send(Command::SetSetting {
-                    key: "captureProfile".into(),
-                    value: profile.key().into(),
-                }) {
-                    self.profile_pending = true;
-                    self.status = Status::LoadingProfile;
                 }
             }
             Message::Auto(enabled) => {
@@ -783,12 +737,6 @@ impl App {
                 }
             }
             Event::SettingsChanged { settings } => {
-                if let Some(profile) =
-                    settings.get("captureProfile").and_then(|s| Profile::from_key(s))
-                {
-                    self.profile = profile;
-                    self.profile_pending = false;
-                }
                 if let Some(ready) = settings.get("profileReady") {
                     self.profile_ready = ready == "true";
                 }
@@ -829,7 +777,6 @@ impl App {
             }
             Event::Failed { code, message } => {
                 self.busy = false;
-                self.profile_pending = false;
                 if matches!(
                     code.as_str(),
                     "scannerUnavailable" | "deviceNotFound" | "badCalibration"
@@ -876,15 +823,11 @@ impl App {
     }
 
     fn can_scan(&self) -> bool {
-        self.backend.connected()
-            && self.device.is_some()
-            && self.profile_ready
-            && !self.profile_pending
-            && !self.busy
+        self.backend.connected() && self.device.is_some() && self.profile_ready && !self.busy
     }
 
     fn can_calibrate(&self) -> bool {
-        self.can_scan() && self.profile == Profile::General
+        self.can_scan()
     }
 
     fn image_handle(

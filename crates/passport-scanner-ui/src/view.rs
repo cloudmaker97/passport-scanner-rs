@@ -431,18 +431,6 @@ impl App {
         let c = Colors::new(self.appearance);
         let t = self.t();
         let label = |value: &'static str| text(value).size(12).color(c.muted);
-        let profiles = Profile::ALL.map(|value| Choice { value, label: value.label(t) });
-        let profile: Element<'_, Message> = if self.busy || self.profile_pending {
-            text(self.profile.label(t)).into()
-        } else {
-            pick_list(
-                profiles,
-                Some(Choice { value: self.profile, label: self.profile.label(t) }),
-                |choice| Message::Profile(choice.value),
-            )
-            .width(Fill)
-            .into()
-        };
         let appearance_label = |a: Appearance| match a {
             Appearance::Dark => t.dark,
             Appearance::Light => t.light,
@@ -467,40 +455,24 @@ impl App {
             )
             .width(Fill),
             rule::horizontal(1),
-            label(t.capture_profile),
-            profile,
-            text(if self.profile_pending {
-                t.loading
-            } else if self.profile_ready {
-                t.ready
-            } else {
-                t.not_ready
-            })
-            .size(11)
-            .color(c.muted),
             toggler(self.auto).label(t.auto_scan).on_toggle(Message::Auto).size(18),
             toggler(self.buzzer).label(t.buzzer).on_toggle(Message::Buzzer).size(18),
             rule::horizontal(1),
             label(t.calibration),
             text(calibration).size(11).color(c.muted),
+            text(t.calibration_hint).size(12).color(c.muted),
+            row![
+                button(t.measure)
+                    .style(quiet)
+                    .on_press_maybe(self.can_calibrate().then_some(Message::Calibrate)),
+                button(t.remove_own).style(quiet).on_press_maybe(
+                    (self.can_calibrate() && calibration.contains("PassportScanner"))
+                        .then_some(Message::ForgetCalibration)
+                )
+            ]
+            .spacing(8),
         ]
         .spacing(12);
-        if self.profile == Profile::General {
-            settings = settings.push(text(t.calibration_hint).size(12).color(c.muted)).push(
-                row![
-                    button(t.measure)
-                        .style(quiet)
-                        .on_press_maybe(self.can_calibrate().then_some(Message::Calibrate)),
-                    button(t.remove_own).style(quiet).on_press_maybe(
-                        (self.can_calibrate() && calibration.contains("PassportScanner"))
-                            .then_some(Message::ForgetCalibration)
-                    )
-                ]
-                .spacing(8),
-            );
-        } else {
-            settings = settings.push(text(t.factory_calibration).size(11).color(c.muted));
-        }
         if self.backend.picks_folders() {
             settings = settings
                 .push(rule::horizontal(1))

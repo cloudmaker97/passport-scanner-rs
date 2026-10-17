@@ -22,13 +22,10 @@ pub struct Host {
     mcp: Mutex<Option<Server>>,
 }
 impl Host {
+    /// The application always captures with the factory General profile; the
+    /// others remain for the diagnostic tools that take `--profile`.
     pub fn start() -> Result<Self> {
-        let profile = crate::preferences::startup_profile(
-            None,
-            std::env::var("PASSPORT_SCANNER_PROFILE").ok().as_deref(),
-            &crate::preferences::path()?,
-        )?;
-        Self::with_profile(profile)
+        Self::with_profile(CaptureSelection::General)
     }
     pub fn with_profile(profile: CaptureSelection) -> Result<Self> {
         let listener = TcpListener::bind(local_http::API_ADDRESS).map_err(|e| {
