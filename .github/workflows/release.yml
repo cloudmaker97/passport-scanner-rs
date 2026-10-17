@@ -101,7 +101,7 @@ jobs:
         with:
           ref: ${{ env.TAG }}
           path: source
-          sparse-checkout: LICENSE
+          sparse-checkout: LICENSE.txt
           sparse-checkout-cone-mode: false
 
       - name: Upload to the release
