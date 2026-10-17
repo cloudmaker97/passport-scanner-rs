@@ -175,6 +175,12 @@ pub struct App {
     mcp: bool,
     present: bool,
     exporting: bool,
+    /// Complete documents waiting to be saved by themselves, oldest first.
+    pending_saves: Vec<String>,
+    /// The document whose automatic save is running.
+    auto_saving: Option<String>,
+    /// Where each document was saved by itself, so a rescan replaces that file.
+    auto_saved: HashMap<String, String>,
     notice: Option<(String, bool)>,
     preview_side: Side,
     preview_source: Source,
@@ -256,6 +262,9 @@ impl App {
             mcp: false,
             present: false,
             exporting: false,
+            pending_saves: Vec::new(),
+            auto_saving: None,
+            auto_saved: HashMap::new(),
             notice: None,
             preview_side: Side::Front,
             preview_source: Source::White,
@@ -403,6 +412,7 @@ impl App {
                             .map(Message::Screenshot);
                     }
                 }
+                return self.auto_save();
             }
             Message::Reconnect => self.connect(),
             Message::Capture(side) if self.can_scan() => {
@@ -472,14 +482,14 @@ impl App {
             }
             Message::Export => {
                 if let Some(id) = self.selected.clone() {
-                    return self.export(id, self.pdf_folder.clone());
+                    return self.export(id, self.pdf_folder.clone(), true, None);
                 }
             }
             Message::HistoryMenu(id) => self.history_menu = id,
             Message::SaveDocumentAs(id) => {
                 self.history_menu = None;
                 // Always ask, even where a permanent folder is set.
-                return self.export(id, None);
+                return self.export(id, None, true, None);
             }
             Message::DeleteDocument(id) => {
                 self.history_menu = None;
@@ -494,10 +504,14 @@ impl App {
             }
             Message::Exported(result) => {
                 self.exporting = false;
+                let auto = self.auto_saving.take();
                 let t = self.t();
                 match result {
                     Ok(ExportOutcome::Saved(path)) => {
                         self.notice = Some((format!("{}: {path}", t.pdf_saved), false));
+                        if let Some(id) = auto {
+                            self.auto_saved.insert(id, path);
+                        }
                     }
                     Ok(ExportOutcome::Downloaded) => {
                         self.notice = Some((t.pdf_downloaded.into(), false));
@@ -506,6 +520,7 @@ impl App {
                     Ok(ExportOutcome::Unavailable) => self.fail(t.pdf_unavailable),
                     Err(e) => self.fail(e),
                 }
+                return self.auto_save();
             }
             Message::PreviewSide(side) => self.preview_side = side,
             Message::PreviewSource(source) => self.preview_source = source,
@@ -577,8 +592,15 @@ impl App {
         Task::none()
     }
 
-    /// Export one complete document; `None` asks where to save.
-    fn export(&mut self, id: String, folder: Option<String>) -> Task<Message> {
+    /// Export one complete document; without a folder, `ask` decides whether a
+    /// dialog asks where to save. `path` replaces an earlier export instead.
+    fn export(
+        &mut self,
+        id: String,
+        folder: Option<String>,
+        ask: bool,
+        path: Option<String>,
+    ) -> Task<Message> {
         if self.exporting || self.documents.get(&id).is_none_or(|d| d.image_count() != 4) {
             return Task::none();
         }
@@ -590,8 +612,25 @@ impl App {
                 title: t.save_dialog_title.into(),
                 filter: t.pdf_filter.into(),
                 folder,
+                ask,
+                path,
             },
         )
+    }
+
+    /// Save the next complete document by itself, over its earlier automatic
+    /// save if there is one. Waits while another export runs.
+    fn auto_save(&mut self) -> Task<Message> {
+        if self.exporting || self.pending_saves.is_empty() {
+            return Task::none();
+        }
+        let id = self.pending_saves.remove(0);
+        let path = self.auto_saved.get(&id).cloned();
+        let task = self.export(id.clone(), self.pdf_folder.clone(), false, path);
+        if self.exporting {
+            self.auto_saving = Some(id);
+        }
+        task
     }
 
     fn ready_status(&self) -> Status {
@@ -677,8 +716,15 @@ impl App {
                 self.selected = Some(scan.document.clone());
                 self.preview_side = scan.side;
                 self.cache_scan(&scan);
+                let id = scan.document.clone();
                 self.documents.upsert(*scan);
                 self.prune_images();
+                if self.backend.saves_automatically()
+                    && self.documents.get(&id).is_some_and(|d| d.image_count() == 4)
+                    && !self.pending_saves.contains(&id)
+                {
+                    self.pending_saves.push(id);
+                }
             }
             Event::Failed { code, message } => {
                 self.busy = false;

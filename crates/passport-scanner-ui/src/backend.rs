@@ -24,8 +24,12 @@ pub enum Inbound {
 pub struct ExportRequest {
     pub title: String,
     pub filter: String,
-    /// Save here without asking; `None` asks where to save.
+    /// Save here without asking; `None` asks where to save, unless `ask` is off.
     pub folder: Option<String>,
+    /// Without a folder, `false` saves to the platform's documents folder.
+    pub ask: bool,
+    /// Write exactly this file again, replacing it; wins over the other fields.
+    pub path: Option<String>,
 }
 
 /// How a PDF export ended.
@@ -60,6 +64,11 @@ pub trait Backend: std::fmt::Debug {
     /// Ask for that folder; finishes with [`Message::FolderChosen`].
     fn choose_folder(&self, _title: String) -> Task<Message> {
         Task::none()
+    }
+    /// Whether a document is saved by itself once both sides are scanned, and
+    /// saved again over the same file when a side is scanned anew.
+    fn saves_automatically(&self) -> bool {
+        false
     }
     /// Local web and MCP services, which only the native session owns.
     fn services(&self) -> Option<&dyn LocalServices> {

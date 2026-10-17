@@ -1,6 +1,6 @@
-//! Export file names: `YYYY-MM-DD--NNN--HH-MM-SS.pdf`.
+//! Export file names: `YYYY-MM-DD-NNNNNNNN-HH-MM-SS.pdf`.
 //!
-//! The number counts the exports of one day in one place, starting at 001. It
+//! The number counts the exports of one day in one place, starting at 00000001. It
 //! is derived from what is already there rather than stored, so deleting or
 //! moving files never leaves a stale counter behind.
 
@@ -23,7 +23,7 @@ impl Stamp {
 
     pub fn file_name(&self, number: u32) -> String {
         format!(
-            "{}--{number:03}--{:02}-{:02}-{:02}.pdf",
+            "{}-{number:08}-{:02}-{:02}-{:02}.pdf",
             self.date(),
             self.hour,
             self.minute,
@@ -34,8 +34,8 @@ impl Stamp {
 
 /// The number of an export file for `date`, or `None` if the name is another file.
 pub fn number_of(name: &str, date: &str) -> Option<u32> {
-    let rest = name.strip_prefix(date)?.strip_prefix("--")?;
-    let (number, time) = rest.split_once("--")?;
+    let rest = name.strip_prefix(date)?.strip_prefix('-')?;
+    let (number, time) = rest.split_once('-')?;
     let time = time.strip_suffix(".pdf").or_else(|| time.strip_suffix(".PDF"))?;
     let well_formed = time.len() == 8
         && time
@@ -65,20 +65,21 @@ mod tests {
 
     #[test]
     fn formats_with_zero_padding() {
-        assert_eq!(STAMP.file_name(1), "2026-03-07--001--09-05-04.pdf");
-        assert_eq!(STAMP.file_name(1234), "2026-03-07--1234--09-05-04.pdf");
+        assert_eq!(STAMP.file_name(1), "2026-03-07-00000001-09-05-04.pdf");
+        assert_eq!(STAMP.file_name(123_456_789), "2026-03-07-123456789-09-05-04.pdf");
     }
 
     #[test]
     fn continues_after_the_highest_number_of_the_same_day_only() {
         let existing = [
-            "2026-03-07--001--08-00-00.pdf",
-            "2026-03-07--007--08-10-00.pdf",
-            "2026-03-07--003--08-20-00.PDF",
-            "2026-03-06--050--08-00-00.pdf",
-            "2026-03-07--999.pdf",
-            "2026-03-07--x12--08-00-00.pdf",
-            "2026-03-07--012--8-0-0.pdf",
+            "2026-03-07-00000001-08-00-00.pdf",
+            "2026-03-07-00000007-08-10-00.pdf",
+            "2026-03-07-00000003-08-20-00.PDF",
+            "2026-03-06-00000050-08-00-00.pdf",
+            "2026-03-07-00000999.pdf",
+            "2026-03-07-x0000012-08-00-00.pdf",
+            "2026-03-07-00000012-8-0-0.pdf",
+            "2026-03-07--00000020--08-00-00.pdf",
             "notes.txt",
         ];
         assert_eq!(next_number(&STAMP.date(), existing), 8);

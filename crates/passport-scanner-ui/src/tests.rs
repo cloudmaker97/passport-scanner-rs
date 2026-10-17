@@ -297,6 +297,8 @@ struct Scripted {
     sent: Rc<RefCell<Vec<Command>>>,
     open: bool,
     exported_to: Rc<RefCell<Option<Option<String>>>>,
+    requests: Rc<RefCell<Vec<ExportRequest>>>,
+    autosave: bool,
 }
 
 impl Backend for Scripted {
@@ -315,11 +317,15 @@ impl Backend for Scripted {
         std::mem::take(&mut self.inbound)
     }
     fn export_pdf(&self, _: String, request: ExportRequest) -> Task<Message> {
-        *self.exported_to.borrow_mut() = Some(request.folder);
+        *self.exported_to.borrow_mut() = Some(request.folder.clone());
+        self.requests.borrow_mut().push(request);
         Task::none()
     }
     fn picks_folders(&self) -> bool {
         true
+    }
+    fn saves_automatically(&self) -> bool {
+        self.autosave
     }
 }
 
@@ -475,4 +481,39 @@ fn demo_delete_removes_both_sides() {
     }
     assert!(desktop.documents.0.is_empty());
     assert!(desktop.images.is_empty());
+}
+
+#[test]
+fn both_sides_save_by_themselves_and_a_rescan_replaces_that_file() {
+    let requests: Rc<RefCell<Vec<ExportRequest>>> = Rc::default();
+    let mut desktop = App::new(
+        Box::new(Scripted { requests: Rc::clone(&requests), autosave: true, ..Default::default() }),
+        Box::<Memory>::default(),
+    );
+    desktop.pdf_folder = Some("D:/Scans".into());
+    let completed = |side: Side| Event::ScanCompleted {
+        scan: Box::new(pictured_scan(&format!("{side:?}"), "d1", side)),
+    };
+    desktop.receive(completed(Side::Front));
+    let _ = desktop.update(Message::Tick);
+    assert!(requests.borrow().is_empty(), "one side is not a document yet");
+    desktop.receive(completed(Side::Back));
+    let _ = desktop.update(Message::Tick);
+    {
+        let requests = requests.borrow();
+        assert_eq!(requests.len(), 1);
+        assert_eq!(requests[0].folder.as_deref(), Some("D:/Scans"));
+        assert!(!requests[0].ask && requests[0].path.is_none());
+    }
+    // A rescan finishing while the first save runs waits for it.
+    desktop.receive(completed(Side::Front));
+    let _ = desktop.update(Message::Tick);
+    assert_eq!(requests.borrow().len(), 1);
+    let _ = desktop.update(Message::Exported(Ok(ExportOutcome::Saved("D:/Scans/a.pdf".into()))));
+    assert_eq!(requests.borrow().len(), 2);
+    assert_eq!(requests.borrow()[1].path.as_deref(), Some("D:/Scans/a.pdf"));
+    let _ = desktop.update(Message::Exported(Ok(ExportOutcome::Saved("D:/Scans/a.pdf".into()))));
+    // A manual export still makes a new file.
+    let _ = desktop.update(Message::Export);
+    assert!(requests.borrow()[2].ask && requests.borrow()[2].path.is_none());
 }

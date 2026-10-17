@@ -117,13 +117,17 @@ impl Backend for HostBackend {
         let stamp = now();
         Task::perform(
             async move {
-                let path = match request.folder {
-                    Some(folder) => {
-                        let folder = PathBuf::from(folder);
+                let folder = request
+                    .folder
+                    .map(PathBuf::from)
+                    .or_else(|| (!request.ask).then(|| dirs::document_dir().unwrap_or_default()));
+                let path = match (request.path, folder) {
+                    (Some(path), _) => PathBuf::from(path),
+                    (None, Some(folder)) => {
                         std::fs::create_dir_all(&folder).map_err(|e| e.to_string())?;
                         unused_name(&folder, stamp)
                     }
-                    None => {
+                    (None, None) => {
                         let start = dirs::document_dir().unwrap_or_default();
                         let suggested = unused_name(&start, stamp);
                         let name = suggested.file_name().unwrap_or_default().to_string_lossy();
@@ -152,6 +156,10 @@ impl Backend for HostBackend {
     }
 
     fn picks_folders(&self) -> bool {
+        true
+    }
+
+    fn saves_automatically(&self) -> bool {
         true
     }
 
@@ -226,22 +234,22 @@ mod tests {
         std::fs::create_dir_all(&folder).unwrap();
         let stamp = Stamp { year: 2026, month: 10, day: 17, hour: 14, minute: 3, second: 9 };
         let first = unused_name(&folder, stamp);
-        assert_eq!(first.file_name().unwrap(), "2026-10-17--001--14-03-09.pdf");
+        assert_eq!(first.file_name().unwrap(), "2026-10-17-00000001-14-03-09.pdf");
         std::fs::write(&first, b"%PDF").unwrap();
-        std::fs::write(folder.join("2026-10-17--004--10-00-00.pdf"), b"%PDF").unwrap();
-        std::fs::write(folder.join("2026-10-16--009--10-00-00.pdf"), b"%PDF").unwrap();
+        std::fs::write(folder.join("2026-10-17-00000004-10-00-00.pdf"), b"%PDF").unwrap();
+        std::fs::write(folder.join("2026-10-16-00000009-10-00-00.pdf"), b"%PDF").unwrap();
         assert_eq!(
             unused_name(&folder, stamp).file_name().unwrap(),
-            "2026-10-17--005--14-03-09.pdf"
+            "2026-10-17-00000005-14-03-09.pdf"
         );
         let next_day = Stamp { day: 18, ..stamp };
         assert_eq!(
             unused_name(&folder, next_day).file_name().unwrap(),
-            "2026-10-18--001--14-03-09.pdf"
+            "2026-10-18-00000001-14-03-09.pdf"
         );
         assert_eq!(
             unused_name(&folder.join("missing"), stamp).file_name().unwrap(),
-            "2026-10-17--001--14-03-09.pdf"
+            "2026-10-17-00000001-14-03-09.pdf"
         );
         std::fs::remove_dir_all(folder).unwrap();
     }
