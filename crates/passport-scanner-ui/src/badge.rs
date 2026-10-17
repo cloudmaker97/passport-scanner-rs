@@ -3,11 +3,11 @@
 //! Drawn rather than typed: the bundled fonts carry no check mark or cross,
 //! and the browser client has no system fonts to fall back on.
 use crate::model::{Document, Verification, verification};
-use iced::widget::canvas::{self, Frame, Geometry, Path, Stroke};
+use iced::widget::canvas::{self, Frame, Geometry, LineCap, LineJoin, Path, Stroke};
 use iced::{Color, Point, Rectangle, Renderer, Theme, mouse};
 
 /// Side length of the mark, in logical pixels.
-pub(crate) const SIZE: f32 = 14.0;
+pub(crate) const SIZE: f32 = 12.0;
 
 /// How a document's machine-readable zone came out.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -52,35 +52,36 @@ impl<Message> canvas::Program<Message> for Badge {
     ) -> Vec<Geometry> {
         let mut frame = Frame::new(renderer, bounds.size());
         let s = bounds.width.min(bounds.height);
-        let centre = Point::new(s / 2.0, s / 2.0);
         let at = |x: f32, y: f32| Point::new(x * s, y * s);
-        let mark = |color| Stroke::default().with_color(color).with_width(s * 0.13);
-        match self.mrz {
-            Mrz::Verified => {
-                frame.fill(&Path::circle(centre, s / 2.0), self.good);
-                let tick = Path::new(|p| {
-                    p.move_to(at(0.28, 0.52));
-                    p.line_to(at(0.44, 0.68));
-                    p.line_to(at(0.73, 0.36));
-                });
-                frame.stroke(&tick, mark(Color::WHITE));
-            }
-            Mrz::Wrong => {
-                frame.fill(&Path::circle(centre, s / 2.0), self.bad);
-                let cross = Path::new(|p| {
-                    p.move_to(at(0.33, 0.33));
-                    p.line_to(at(0.67, 0.67));
-                    p.move_to(at(0.67, 0.33));
-                    p.line_to(at(0.33, 0.67));
-                });
-                frame.stroke(&cross, mark(Color::WHITE));
-            }
-            Mrz::Absent => {
-                let ring = Stroke::default().with_color(self.muted).with_width(s * 0.09);
-                frame.stroke(&Path::circle(centre, s / 2.0 - s * 0.06), ring);
-                frame.stroke(&Path::line(at(0.32, 0.5), at(0.68, 0.5)), mark(self.muted));
-            }
-        }
+        // Bare strokes in the status colour, nothing around them.
+        let pen = |color| {
+            Stroke::default()
+                .with_color(color)
+                .with_width(s * 0.14)
+                .with_line_cap(LineCap::Round)
+                .with_line_join(LineJoin::Round)
+        };
+        let (path, color) = match self.mrz {
+            Mrz::Verified => (
+                Path::new(|p| {
+                    p.move_to(at(0.15, 0.55));
+                    p.line_to(at(0.4, 0.8));
+                    p.line_to(at(0.85, 0.25));
+                }),
+                self.good,
+            ),
+            Mrz::Wrong => (
+                Path::new(|p| {
+                    p.move_to(at(0.22, 0.22));
+                    p.line_to(at(0.78, 0.78));
+                    p.move_to(at(0.78, 0.22));
+                    p.line_to(at(0.22, 0.78));
+                }),
+                self.bad,
+            ),
+            Mrz::Absent => (Path::line(at(0.25, 0.5), at(0.75, 0.5)), self.muted),
+        };
+        frame.stroke(&path, pen(color));
         vec![frame.into_geometry()]
     }
 }
