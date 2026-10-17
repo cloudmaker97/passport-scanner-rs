@@ -199,6 +199,10 @@
   )
 }
 
+// The icon is porcelain on transparent; on paper it sits in a dark tile.
+#let app-tile(size) = box(baseline: 22%, width: size, height: size, radius: size * 0.22, fill: night.ground,
+  align(center + horizon, image("icon.svg", width: 100%)))
+
 #let cover(title, subtitle, author, version) = page(
   fill: night.ground,
   margin: (x: 22mm, top: 24mm, bottom: 20mm),
@@ -209,7 +213,9 @@
     grid(
       columns: (1fr, auto),
       align: horizon,
-      text(size: 8pt, weight: "semibold", tracking: 0.14em, fill: night.muted, upper(subtitle)),
+      stack(dir: ltr, spacing: 10pt,
+        box(baseline: 35%, image("icon.svg", width: 36pt)),
+        text(size: 8pt, weight: "semibold", tracking: 0.14em, fill: night.muted, upper(subtitle))),
       if version != none {
         box(stroke: 0.6pt + night.line, radius: 2pt, inset: (x: 6pt, y: 4pt),
           text(size: 8pt, font: mono, fill: night.muted, version))
@@ -256,7 +262,8 @@
       grid(
         columns: (auto, 1fr, auto),
         column-gutter: 8pt,
-        text(weight: "medium", fill: ink)[#title],
+        align: horizon,
+        [#app-tile(11pt)#h(5pt)#text(weight: "medium", fill: ink)[#title]],
         if before.len() > 0 { before.last().body },
         subtitle,
       )

@@ -292,6 +292,14 @@ fn broadcast(hub: &Arc<Hub>, json: &str) {
 #[cfg(windows)]
 const POLL: std::time::Duration = std::time::Duration::from_millis(100);
 
+/// How long a stream brought up for a card may wait for that card to settle.
+///
+/// A card that lies half on the platen for longer than this is not about to
+/// be scanned, and a stream left running is what overexposes a capture; see
+/// `Scanner::scan`. The scan then brings up a fresh one itself.
+#[cfg(windows)]
+const PREPARED_LIMIT: std::time::Duration = std::time::Duration::from_secs(3);
+
 /// How long to wait before looking for a scanner again.
 #[cfg(windows)]
 const RETRY: std::time::Duration = std::time::Duration::from_secs(2);
@@ -451,12 +459,18 @@ fn watch(
             trigger.mark_scanned();
         }
         let mut reported = None;
+        // Whether the stream has been brought up for the card now on the
+        // platen; once per placement, so a card left lying does not keep
+        // restarting it.
+        let mut warmed = false;
 
         'connected: while !listeners.stop.load(Ordering::Acquire) {
             let mut by_hand = false;
             while let Ok(ask) = rx.try_recv() {
                 match ask {
                     Ask::Profile(requested) => {
+                        // These change what a stream is set up with.
+                        let _ = scanner.release();
                         match crate::select_capture(&mut scanner, model, requested) {
                             Ok(candidate) => {
                                 // No capture can interleave on this device-owning thread.
@@ -547,6 +561,8 @@ fn watch(
                     }
                     Ask::Side(side) => album.set_side(side),
                     Ask::Calibrate => {
+                        // These change what a stream is set up with.
+                        let _ = scanner.release();
                         if let Err(e) = crate::calibration::require_general(profile.profile()) {
                             broadcast(listeners, &failed("calibrationRefused", &e.to_string()));
                             continue;
@@ -567,6 +583,8 @@ fn watch(
                         }
                     }
                     Ask::ForgetCalibration => {
+                        // These change what a stream is set up with.
+                        let _ = scanner.release();
                         if let Err(e) = crate::calibration::require_general(profile.profile()) {
                             broadcast(listeners, &failed("calibrationRefused", &e.to_string()));
                             continue;
@@ -640,6 +658,30 @@ fn watch(
                 );
             }
 
+            if !presence.is_present() {
+                warmed = false;
+            }
+            // A card has touched a sensor: bring the stream up now, while it
+            // is still being put down, rather than after it has settled. No
+            // lamp is lit until the scan itself.
+            if auto && !by_hand && action == Action::Wait && trigger.pending() && !warmed {
+                warmed = true;
+                if let Err(e) = scanner.prepare() {
+                    broadcast(listeners, &failed("scanFailed", &e.to_string()));
+                    break;
+                }
+            } else if action == Action::Wait
+                && !by_hand
+                && (!trigger.pending()
+                    || scanner.prepared_for().is_some_and(|waited| waited > PREPARED_LIMIT))
+            {
+                // Taken away again, or left lying half on: nothing to scan with it.
+                if let Err(e) = scanner.release() {
+                    broadcast(listeners, &failed("scanFailed", &e.to_string()));
+                    break;
+                }
+            }
+
             if by_hand {
                 // Asked for by hand: the trigger must not fire on the same
                 // document again a moment later.
@@ -647,10 +689,11 @@ fn watch(
             } else if action != Action::Scan || !auto {
                 std::thread::sleep(POLL);
                 continue;
-            } else {
+            } else if scanner.prepared_for().is_none() {
                 // A card is still settling when it first trips a sensor. The
                 // shipped driver waits FirstDelay here - half a second on the
-                // reference unit - before committing to a scan.
+                // reference unit - before committing to a scan. With the
+                // stream brought up meanwhile, that second has already passed.
                 std::thread::sleep(settings.delays.first);
             }
 

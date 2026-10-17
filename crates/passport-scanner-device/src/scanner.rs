@@ -122,6 +122,8 @@ pub struct Scanner<T, C> {
     flush: usize,
     /// Size of the last frame kept, for telling a new picture from a stale one.
     last_size: Option<usize>,
+    /// When the stream was brought up ahead of a scan that has not run yet.
+    prepared: Option<std::time::Instant>,
 }
 
 impl<T: VendorTransport, C: FrameSource> Scanner<T, C> {
@@ -144,6 +146,7 @@ impl<T: VendorTransport, C: FrameSource> Scanner<T, C> {
             buzzer: false,
             flush: FLUSH_FRAMES,
             last_size: None,
+            prepared: None,
         }
     }
 
@@ -458,11 +461,88 @@ impl<T: VendorTransport, C: FrameSource> Scanner<T, C> {
         frames.pop().ok_or_else(|| Error::Rejected("no frame arrived".to_owned()))
     }
 
+    /// Bring the stream up for a scan that is about to be asked for.
+    ///
+    /// A cold stream takes about a second before its frames are usable, and
+    /// none of that needs a lamp or a document at rest. Started when a card
+    /// first touches a sensor, that second passes while the card is still
+    /// being put down, and [`Self::scan`] goes straight to the lamps. No lamp
+    /// is lit here. Does nothing if the stream is already up.
+    ///
+    /// # Errors
+    /// Fails if the unit refuses a command or no frame arrives. The stream is
+    /// then taken down again.
+    pub fn prepare(&mut self) -> Result<()> {
+        if self.prepared.is_some() {
+            return Ok(());
+        }
+        match self.start_stream() {
+            Ok(()) => {
+                self.prepared = Some(std::time::Instant::now());
+                Ok(())
+            }
+            Err(e) => {
+                let _ = self.finish_stream();
+                Err(e)
+            }
+        }
+    }
+
+    /// How long the stream has been up waiting for its scan, if it is.
+    #[must_use]
+    pub fn prepared_for(&self) -> Option<Duration> {
+        self.prepared.map(|at| at.elapsed())
+    }
+
+    /// Take down a stream brought up by [`Self::prepare`] that will not be
+    /// scanned with after all - the card was taken away again.
+    ///
+    /// # Errors
+    /// Fails if the unit refuses a command; every step is still attempted.
+    pub fn release(&mut self) -> Result<()> {
+        if self.prepared.take().is_none() {
+            return Ok(());
+        }
+        self.finish_stream()
+    }
+
     /// Run a full capture: every fitted source, in order, then tidy up.
+    ///
+    /// Uses the stream [`Self::prepare`] brought up, if there is one, and
+    /// otherwise brings one up first.
     ///
     /// # Errors
     /// Fails if any step does. Illumination is switched off even then.
     pub fn scan(&mut self, sources: &[LightSource]) -> Result<Vec<Frame>> {
+        let started = std::time::Instant::now();
+        let mut frames = Vec::with_capacity(sources.len());
+        let outcome: Result<()> = (|| {
+            if self.prepared.take().is_none() {
+                self.start_stream()?;
+            }
+            for source in sources {
+                let lap = std::time::Instant::now();
+                frames.push(self.capture(*source)?);
+                // Where a scan's time goes, for `RUST_LOG=debug`; nothing personal.
+                tracing::debug!(source = ?source, elapsed_ms = lap.elapsed().as_millis(),
+                    "scan phase");
+            }
+            Ok(())
+        })();
+        let cleanup = self.finish_stream();
+        tracing::debug!(elapsed_ms = started.elapsed().as_millis(), "scan captured");
+        // A captured frame is not a successful scan if shutdown failed.
+        outcome?;
+        cleanup?;
+
+        if self.buzzer {
+            self.buzz(BUZZER)?;
+        }
+        Ok(frames)
+    }
+
+    /// Open a fresh stream and get it to where a lamp can be switched on.
+    fn start_stream(&mut self) -> Result<()> {
         // F6 enables the imaging path; it does not select an illuminator.
         // After startup frames are discarded, capture() selects General
         // white with F1, infrared with F2, or Identity with bridge register 7.
@@ -472,48 +552,35 @@ impl<T: VendorTransport, C: FrameSource> Scanner<T, C> {
         // exposed correctly and the ones after it are not. Not fatal if the
         // stack cannot do it - a source with nothing to restore says so by
         // doing nothing.
-        let mut frames = Vec::with_capacity(sources.len());
-        let started = std::time::Instant::now();
-        let mut lap = started;
-        // Where a scan's time goes, for `RUST_LOG=debug`; nothing personal.
+        let mut lap = std::time::Instant::now();
         let mut phase = |name: &str| {
             let now = std::time::Instant::now();
             tracing::debug!(phase = name, elapsed_ms = (now - lap).as_millis(), "scan phase");
             lap = now;
         };
-        let outcome: Result<()> = (|| {
-            self.capture.reopen()?;
-            phase("reopen");
-            self.control(key::IMAGING_ENABLE, ENABLE)?;
-            self.capture.start()?;
-            phase("start stream");
-            self.last_size = None;
-            for _ in 0..self.flush {
-                let stale = self.capture.next_frame(Duration::from_secs(5))?;
-                self.last_size = Some(stale.data.len());
-            }
-            phase("flush");
-            // Opening the stream resets the sensor. Wait for startup frames
-            // before restoring its manual exposure and white-balance mode.
-            for (name, value) in self.startup_controls.clone() {
-                self.capture.set_control(&name, value)?;
-            }
-            let common = self.calibration.common.clone();
-            self.write_registers(&common)?;
-            phase("restore controls");
-            for source in sources {
-                frames.push(self.capture(*source)?);
-                phase(match source {
-                    LightSource::White => "white",
-                    LightSource::Infrared => "infrared",
-                    _ => "other source",
-                });
-            }
-            Ok(())
-        })();
+        self.capture.reopen()?;
+        self.control(key::IMAGING_ENABLE, ENABLE)?;
+        self.capture.start()?;
+        phase("start stream");
+        self.last_size = None;
+        for _ in 0..self.flush {
+            let stale = self.capture.next_frame(Duration::from_secs(5))?;
+            self.last_size = Some(stale.data.len());
+        }
+        phase("flush");
+        // Opening the stream resets the sensor. Wait for startup frames
+        // before restoring its manual exposure and white-balance mode.
+        for (name, value) in self.startup_controls.clone() {
+            self.capture.set_control(&name, value)?;
+        }
+        let common = self.calibration.common.clone();
+        self.write_registers(&common)?;
+        phase("restore controls");
+        Ok(())
+    }
 
-        // Tidy up whatever happened above, the stream included.
-        //
+    /// Put the lamps out and take the stream down, whatever state it is in.
+    fn finish_stream(&mut self) -> Result<()> {
         // Stopping it matters more than it looks. Left running between scans,
         // the first scan after opening the device came out right and every one
         // after it came out overexposed - measured over ten runs, the first
@@ -529,18 +596,10 @@ impl<T: VendorTransport, C: FrameSource> Scanner<T, C> {
         let disable_imaging = self.control(key::IMAGING_ENABLE, DISABLE);
         let lamps_off = self.lights_off();
         // Attempt every cleanup action, then report the earliest failure.
-        // A captured frame is not a successful scan if shutdown failed.
-        tracing::debug!(elapsed_ms = started.elapsed().as_millis(), "scan captured");
-        outcome?;
         identity_cleanup?;
         stop?;
         disable_imaging?;
-        lamps_off?;
-
-        if self.buzzer {
-            self.buzz(BUZZER)?;
-        }
-        Ok(frames)
+        lamps_off
     }
 
     /// Turn every lamp off.

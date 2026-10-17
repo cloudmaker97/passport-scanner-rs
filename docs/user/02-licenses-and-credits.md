@@ -28,14 +28,13 @@ Passport Scanner is built on the work of others. Thank you.
 | Tesseract OCR | reading the text of the MRZ (installed separately) | Apache License 2.0 |
 | Iced | the program window | MIT |
 | Fira Sans, Fira Mono | fonts in the program window and in this guide | SIL Open Font License 1.1 |
-| Material Design Icons (Google) | the program icon | Apache License 2.0 |
 | nokhwa | camera access on Windows (changed copy included) | Apache License 2.0 |
 | mozjpeg / libjpeg | JPEG pictures | IJG License, BSD-3-Clause, Zlib |
 | Rust and the Rust crates in `Cargo.lock` | building the program | mostly MIT or Apache License 2.0 |
 
 This software is based in part on the work of the Independent JPEG Group.
 
-The license texts for the icon and the fonts are in the `licenses` folder next
+The license texts for the fonts are in the `licenses` folder next
 to the program. Each Rust crate carries its own license file in its source
 package.
 

@@ -74,7 +74,6 @@ if ($optimizer) {
 
 Copy-Item (Join-Path $root "target\release\passport-scanner-*.exe") $dist
 Copy-Item (Join-Path $root "crates\passport-scanner-webui\index.html") $www
-Copy-Item (Join-Path $root "licenses\material-design-icons-LICENSE.txt") (Join-Path $dist "licenses")
 Copy-Item (Join-Path $root "licenses\application-icon.md") (Join-Path $dist "licenses")
 Copy-Item (Join-Path $root "licenses\fira-mono-OFL.txt") (Join-Path $dist "licenses")
 

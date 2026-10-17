@@ -94,6 +94,32 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
             }
             drop(scanner);
         }
+
+        // The service brings the stream up when a card first touches a
+        // sensor and scans once it has settled. What is left to wait for is
+        // only the part after that, which is what the second column shows.
+        for _ in 0..2 {
+            let (mut scanner, _) = passport_scanner_app::open()?;
+            let started = Instant::now();
+            scanner.prepare()?;
+            std::thread::sleep(Duration::from_millis(300));
+            let settled = Instant::now();
+            let frames = scanner.scan(&sources)?;
+            let after = settled.elapsed();
+            let total = started.elapsed();
+            let white = frames.iter().find(|f| f.source == LightSource::White).and_then(decode);
+            let infrared =
+                frames.iter().find(|f| f.source == LightSource::Infrared).and_then(decode);
+            let label = format!("prepared, then {after:.2?}");
+            match (white, infrared) {
+                (Some(w), Some(i)) => println!(
+                    "{label:<26} {total:>9.2?} {:>8} {:>12.1}",
+                    spread(&w),
+                    difference(&w, &i)
+                ),
+                _ => println!("{label:<26} {total:>9.2?}   (a frame would not decode)"),
+            }
+        }
         Ok(())
     }
 }

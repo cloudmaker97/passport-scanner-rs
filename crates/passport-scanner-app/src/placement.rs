@@ -82,6 +82,12 @@ impl Trigger {
         self.scanned = true;
     }
 
+    /// Whether something is on the platen that has not been scanned yet.
+    #[must_use]
+    pub fn pending(&self) -> bool {
+        self.present() && !self.scanned
+    }
+
     /// Whether anything is on the platen, as last seen.
     #[must_use]
     pub fn present(&self) -> bool {

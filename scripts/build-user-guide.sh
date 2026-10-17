@@ -19,7 +19,7 @@ trap 'rm -rf "$tmp"' EXIT
     printf '```\n'
 } > "$tmp/99-license.md"
 
-cp "$root/docs/user/handbook.typ" "$tmp/"
+cp "$root/docs/user/handbook.typ" "$root/icon.svg" "$tmp/"
 # --columns=1 gives every table the full text width, split by its dashes.
 pandoc "$root/docs/user/metadata.yaml" "$root"/docs/user/[0-9]*.md "$tmp/99-license.md" \
     --to=typst --standalone --columns=1 --wrap=none \
