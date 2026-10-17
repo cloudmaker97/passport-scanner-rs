@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1600" height="280" viewBox="0 0 1600 280" fill="none" role="img" aria-labelledby="title desc">
+<title id="title">passport-scanner-rs</title>
+<desc id="desc">Independent ID document scanning in Rust. Windows, macOS and Linux. Capture, OCR and MRZ.</desc>
+<rect width="1600" height="280" rx="16" fill="#242629"/>
+<path d="M1470 0v280M1510 0v280M1550 0v280" stroke="#EEEDE5" stroke-opacity=".035"/>
+<path d="M1385 45h140v42M1385 235h140v-42" stroke="#EEEDE5" stroke-opacity=".12" stroke-width="2"/>
+<g transform="translate(40 30) scale(2.2)"><g style="color:#EEEDE5"><defs><mask id="v09-C08-cut9"><rect width="100" height="100" fill="white"/><g style="color:black"><g transform="translate(35 38) scale(0.9)"><circle cx="0" cy="0" r="6" fill="currentColor" stroke="currentColor" stroke-width="0"/><path d="M-11 20v-3a11 11 0 0 1 22 0v3Z" fill="currentColor"/></g><path d="M55 32h17M55 41h12M27 69h45" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/><path d="M5 59h90" fill="none" stroke="currentColor" stroke-width="8" stroke-linecap="round" stroke-linejoin="round"/></g></mask></defs><g mask="url(#v09-C08-cut9)"><rect x="16" y="22" width="68" height="58" rx="7" fill="currentColor" stroke="currentColor" stroke-width="0"/></g><g style="color:#EEEDE5"><path d="M7 59h86" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></g></g></g>
+<path d="M291 66v148" stroke="#EEEDE5" stroke-opacity=".16"/>
+<text x="342" y="111" fill="#EEEDE5" font-family="DejaVu Sans, sans-serif" font-size="57" font-weight="bold" letter-spacing="-1.8">passport-scanner-rs</text>
+<text x="345" y="161" fill="#D2D3CE" font-family="DejaVu Sans, sans-serif" font-size="26">Independent ID document scanning in Rust.</text>
+<text x="345" y="207" fill="#A9ADA9" font-family="DejaVu Sans, sans-serif" font-size="19" letter-spacing=".4">Windows · macOS · Linux<tspan dx="32" fill="#EEEDE5">Capture / OCR / MRZ</tspan></text>
+</svg>

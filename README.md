@@ -1,5 +1,7 @@
 # Passport-Scanner-Rust
 
+![Passport Scanner Banner](docs/repository/passport-scanner-banner.png)
+
 An independent, cross-platform reimplementation of the user-mode stack for 
 Plustek SecureScan ID document scanners, in Rust. It is not derived from, 
 and shares no code with, the manufacturer's software. It was written to 
