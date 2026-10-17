@@ -2075,7 +2075,7 @@ dependencies = [
 
 [[package]]
 name = "passport-scanner-app"
-version = "0.1.0"
+version = "0.0.6"
 dependencies = [
  "base64 0.22.1",
  "image",
@@ -2094,7 +2094,7 @@ dependencies = [
 
 [[package]]
 name = "passport-scanner-capture"
-version = "0.1.0"
+version = "0.0.6"
 dependencies = [
  "nokhwa",
  "passport-scanner-core",
@@ -2103,14 +2103,14 @@ dependencies = [
 
 [[package]]
 name = "passport-scanner-core"
-version = "0.1.0"
+version = "0.0.6"
 dependencies = [
  "thiserror 2.0.21",
 ]
 
 [[package]]
 name = "passport-scanner-desktop"
-version = "0.1.0"
+version = "0.0.6"
 dependencies = [
  "dirs",
  "iced",
@@ -2131,7 +2131,7 @@ dependencies = [
 
 [[package]]
 name = "passport-scanner-device"
-version = "0.1.0"
+version = "0.0.6"
 dependencies = [
  "passport-scanner-core",
  "thiserror 2.0.21",
@@ -2140,7 +2140,7 @@ dependencies = [
 
 [[package]]
 name = "passport-scanner-imaging"
-version = "0.1.0"
+version = "0.0.6"
 dependencies = [
  "image",
  "passport-scanner-core",
@@ -2148,14 +2148,14 @@ dependencies = [
 
 [[package]]
 name = "passport-scanner-mrz"
-version = "0.1.0"
+version = "0.0.6"
 dependencies = [
  "passport-scanner-core",
 ]
 
 [[package]]
 name = "passport-scanner-protocol"
-version = "0.1.0"
+version = "0.0.6"
 dependencies = [
  "passport-scanner-core",
  "serde",
@@ -2164,7 +2164,7 @@ dependencies = [
 
 [[package]]
 name = "passport-scanner-recognize"
-version = "0.1.0"
+version = "0.0.6"
 dependencies = [
  "image",
  "passport-scanner-core",
@@ -2175,7 +2175,7 @@ dependencies = [
 
 [[package]]
 name = "passport-scanner-transport-ks"
-version = "0.1.0"
+version = "0.0.6"
 dependencies = [
  "passport-scanner-core",
  "passport-scanner-device",
@@ -2186,7 +2186,7 @@ dependencies = [
 
 [[package]]
 name = "passport-scanner-ui"
-version = "0.1.0"
+version = "0.0.6"
 dependencies = [
  "base64 0.22.1",
  "iced",
@@ -2198,7 +2198,7 @@ dependencies = [
 
 [[package]]
 name = "passport-scanner-webui"
-version = "0.1.0"
+version = "0.0.6"
 dependencies = [
  "console_error_panic_hook",
  "iced",

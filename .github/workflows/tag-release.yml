@@ -40,6 +40,15 @@ jobs:
           fi
           echo "tag=v$version" >> "$GITHUB_OUTPUT"
 
+      # The build runs with --locked; a version bump without the matching
+      # Cargo.lock would create a release that never gets its programs.
+      - name: Check Cargo.lock is up to date
+        run: |
+          if ! cargo update --workspace --locked; then
+            echo "::error::Cargo.lock does not match Cargo.toml; run 'cargo update --workspace' and commit Cargo.lock"
+            exit 1
+          fi
+
       # Normal releases, not pre-releases: the desktop updater asks for
       # /releases/latest, which skips pre-releases.
       - name: Create tag and release
