@@ -17,6 +17,10 @@ struct Colors {
     line: Color,
     good: Color,
     bad: Color,
+    /// Background, text and edge of whatever is selected.
+    chosen: Color,
+    chosen_ink: Color,
+    chosen_line: Color,
 }
 impl Colors {
     fn new(appearance: Appearance) -> Self {
@@ -31,6 +35,9 @@ impl Colors {
                 line: rgb(38, 42, 46),
                 good: rgb(95, 185, 124),
                 bad: rgb(228, 105, 90),
+                chosen: rgb(231, 233, 235),
+                chosen_ink: rgb(13, 15, 17),
+                chosen_line: rgb(231, 233, 235),
             },
             Appearance::Light => Self {
                 ground: Color::WHITE,
@@ -41,6 +48,12 @@ impl Colors {
                 line: rgb(220, 222, 225),
                 good: rgb(31, 107, 54),
                 bad: rgb(168, 27, 16),
+                // A full black block outshouts everything on a white page and
+                // swallows the green and red marks; a light grey still reads
+                // as chosen.
+                chosen: rgb(222, 226, 231),
+                chosen_ink: rgb(21, 24, 27),
+                chosen_line: rgb(176, 182, 189),
             },
         }
     }
@@ -657,9 +670,9 @@ fn selected(theme: &Theme, status: button::Status) -> button::Style {
     }
     let c = Colors::theme(theme);
     button::Style {
-        background: Some(Background::Color(c.ink)),
-        text_color: c.ground,
-        border: Border { color: c.ink, width: 1., radius: 2.into() },
+        background: Some(Background::Color(c.chosen)),
+        text_color: c.chosen_ink,
+        border: Border { color: c.chosen_line, width: 1., radius: 2.into() },
         ..Default::default()
     }
 }
