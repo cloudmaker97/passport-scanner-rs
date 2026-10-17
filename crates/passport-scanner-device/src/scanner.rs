@@ -24,11 +24,12 @@ use std::{thread::sleep, time::Duration};
 ///
 /// [`crate::steady`] recognises the new picture rather than relying on the
 /// wait, so a shorter one does not produce a wrong image - swept over real
-/// scans, 400, 100, 50 and 0 ms all returned the same tonal spread. But the
-/// lamp does take time to reach its working output, and a frame taken before
-/// it has is a frame the calibration does not describe. Matching the shipped
-/// figure is the safe default.
-pub const DEFAULT_SETTLE: Duration = Duration::from_millis(400);
+/// scans, 400, 100, 50 and 0 ms all returned the same tonal spread. The lamp
+/// does take time to reach its working output, but a frame taken while it
+/// is still rising differs from the next one, and the steady check keeps
+/// taking frames until two agree. A short wait is kept as a margin; see
+/// [`crate::settings::LAMP_WAIT_CAP`].
+pub const DEFAULT_SETTLE: Duration = crate::settings::LAMP_WAIT_CAP;
 
 /// Value that frees the imaging path. Without it the stream yields nothing at
 /// all - two-byte frames - no matter which lamp is lit.
@@ -472,15 +473,26 @@ impl<T: VendorTransport, C: FrameSource> Scanner<T, C> {
         // stack cannot do it - a source with nothing to restore says so by
         // doing nothing.
         let mut frames = Vec::with_capacity(sources.len());
+        let started = std::time::Instant::now();
+        let mut lap = started;
+        // Where a scan's time goes, for `RUST_LOG=debug`; nothing personal.
+        let mut phase = |name: &str| {
+            let now = std::time::Instant::now();
+            tracing::debug!(phase = name, elapsed_ms = (now - lap).as_millis(), "scan phase");
+            lap = now;
+        };
         let outcome: Result<()> = (|| {
             self.capture.reopen()?;
+            phase("reopen");
             self.control(key::IMAGING_ENABLE, ENABLE)?;
             self.capture.start()?;
+            phase("start stream");
             self.last_size = None;
             for _ in 0..self.flush {
                 let stale = self.capture.next_frame(Duration::from_secs(5))?;
                 self.last_size = Some(stale.data.len());
             }
+            phase("flush");
             // Opening the stream resets the sensor. Wait for startup frames
             // before restoring its manual exposure and white-balance mode.
             for (name, value) in self.startup_controls.clone() {
@@ -488,8 +500,14 @@ impl<T: VendorTransport, C: FrameSource> Scanner<T, C> {
             }
             let common = self.calibration.common.clone();
             self.write_registers(&common)?;
+            phase("restore controls");
             for source in sources {
                 frames.push(self.capture(*source)?);
+                phase(match source {
+                    LightSource::White => "white",
+                    LightSource::Infrared => "infrared",
+                    _ => "other source",
+                });
             }
             Ok(())
         })();
@@ -512,6 +530,7 @@ impl<T: VendorTransport, C: FrameSource> Scanner<T, C> {
         let lamps_off = self.lights_off();
         // Attempt every cleanup action, then report the earliest failure.
         // A captured frame is not a successful scan if shutdown failed.
+        tracing::debug!(elapsed_ms = started.elapsed().as_millis(), "scan captured");
         outcome?;
         identity_cleanup?;
         stop?;

@@ -169,7 +169,7 @@ fn discard_by_scan_id_removes_both_sides_but_keeps_other_documents() {
     assert_eq!(scans.len(), 1);
     assert_eq!(scans[0].document, "b");
     assert_eq!(selected, None);
-    let result = crate::mcp::handle(serde_json::json!({"jsonrpc":"2.0","id":1,"method":"tools/call","params":{"name":"list_documents"}}), &engine.scans()).unwrap();
+    let result = crate::mcp::handle(serde_json::json!({"jsonrpc":"2.0","id":1,"method":"tools/call","params":{"name":"list_documents"}}), &engine.scans_without_pixels()).unwrap();
     assert_eq!(result["result"]["structuredContent"]["documents"].as_array().unwrap().len(), 1);
     assert_eq!(result["result"]["structuredContent"]["documents"][0]["documentId"], "b");
 }
@@ -345,4 +345,37 @@ fn http_and_mcp_round_trip_the_shared_session_and_stop_the_owned_listeners() {
     assert!(http(address, "GET", "/mcp", "", "").starts_with("HTTP/1.1 405"));
     drop(server);
     assert!(TcpStream::connect(address).is_err());
+}
+
+#[test]
+fn integrations_see_which_images_exist_without_their_bytes() {
+    let (engine, _) = engine();
+    engine.hub.publish(Event::ScanCompleted { scan: Box::new(scan("s", "d", Side::Front)) });
+    let light = engine.scans_without_pixels();
+    let full = engine.scans();
+    assert_eq!(light[0].images.len(), full[0].images.len());
+    assert_eq!(light[0].images[0].source, full[0].images[0].source);
+    assert!(light[0].images[0].url.is_empty());
+    assert!(!full[0].images[0].url.is_empty());
+    assert_eq!(light[0].id, full[0].id);
+}
+
+#[test]
+fn selecting_and_discarding_send_identifiers_not_images() {
+    let (listener, events) = channel();
+    let hub = Hub::with_listener(listener);
+    hub.publish(Event::ScanCompleted { scan: Box::new(scan("a", "one", Side::Front)) });
+    hub.publish(Event::ScanCompleted { scan: Box::new(scan("b", "two", Side::Front)) });
+    let _ = events.try_iter().count();
+    hub.select(Some("a".into()));
+    hub.discard("b");
+    let sent: Vec<Event> =
+        events.try_iter().map(|json| serde_json::from_str(&json).unwrap()).collect();
+    assert_eq!(
+        sent,
+        [
+            Event::History { scans: vec!["b".into(), "a".into()], selected: Some("a".into()) },
+            Event::History { scans: vec!["a".into()], selected: Some("a".into()) },
+        ]
+    );
 }

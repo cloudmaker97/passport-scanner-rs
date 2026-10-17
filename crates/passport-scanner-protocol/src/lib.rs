@@ -281,6 +281,20 @@ pub enum Event {
         /// Which scan the interface should show.
         selected: Option<String>,
     },
+    /// The history changed without any new capture: a scan was selected, a
+    /// document discarded or closed.
+    ///
+    /// Carries only identifiers. Every scan it names has already been sent,
+    /// with its images, in a [`Event::State`] or [`Event::ScanCompleted`], so
+    /// sending the pixels again for a click would be megabytes for nothing. A
+    /// front end that does not know one of them asks with
+    /// [`Command::GetState`].
+    History {
+        /// The scans still kept, newest first.
+        scans: Vec<String>,
+        /// Which scan the interface should show.
+        selected: Option<String>,
+    },
     /// A scanner was attached or detached.
     DeviceChanged {
         /// The scanner now attached, or `None`.
@@ -384,6 +398,15 @@ mod tests {
         let json = serde_json::to_string(&e).unwrap();
         let back: Event = serde_json::from_str(&json).unwrap();
         assert_eq!(e, back);
+    }
+
+    #[test]
+    fn history_carries_identifiers_only() {
+        let e =
+            Event::History { scans: vec!["s2".into(), "s1".into()], selected: Some("s2".into()) };
+        let json = serde_json::to_string(&e).unwrap();
+        assert_eq!(json, r#"{"event":"history","scans":["s2","s1"],"selected":"s2"}"#);
+        assert_eq!(serde_json::from_str::<Event>(&json).unwrap(), e);
     }
 
     #[test]

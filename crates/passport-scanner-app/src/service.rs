@@ -38,6 +38,13 @@ impl Session {
             selected: self.selected.clone(),
         }
     }
+    /// What changed when nothing new was captured: identifiers, no pixels.
+    fn history(&self) -> Event {
+        Event::History {
+            scans: self.scans.iter().map(|scan| scan.id.clone()).collect(),
+            selected: self.selected.clone(),
+        }
+    }
     fn emit(&mut self, event: &Event) {
         if let Ok(json) = serde_json::to_string(event) {
             self.listeners.retain(|tx| tx.send(json.clone()).is_ok());
@@ -119,7 +126,7 @@ impl Hub {
     fn select(&self, selected: Option<String>) {
         let mut s = self.session.lock().expect("session");
         s.selected = selected;
-        let e = s.state();
+        let e = s.history();
         s.emit(&e);
     }
     fn document(&self, id: &str) -> Option<String> {
@@ -140,7 +147,7 @@ impl Hub {
         if s.selected.as_ref().is_some_and(|id| !s.scans.iter().any(|scan| &scan.id == id)) {
             s.selected = None;
         }
-        let e = s.state();
+        let e = s.history();
         s.emit(&e);
     }
     fn subscribe(&self) -> Receiver<String> {
@@ -226,6 +233,36 @@ impl Engine {
     pub fn scans(&self) -> Vec<Scan> {
         self.hub.session.lock().expect("session").scans.clone()
     }
+    /// Current scans with each image's bytes left out: which images there
+    /// are, but not the megabytes of them. For integrations that only read
+    /// what was recognised.
+    pub fn scans_without_pixels(&self) -> Vec<Scan> {
+        let session = self.hub.session.lock().expect("session");
+        session
+            .scans
+            .iter()
+            .map(|scan| Scan {
+                id: scan.id.clone(),
+                document: scan.document.clone(),
+                side: scan.side,
+                at: scan.at.clone(),
+                format: scan.format.clone(),
+                mrz: scan.mrz.clone(),
+                mrz_check: scan.mrz_check,
+                fields: scan.fields.clone(),
+                images: scan
+                    .images
+                    .iter()
+                    .map(|image| passport_scanner_protocol::Image {
+                        source: image.source,
+                        url: String::new(),
+                        width: image.width,
+                        height: image.height,
+                    })
+                    .collect(),
+            })
+            .collect()
+    }
     /// Stop polling and wait for camera cleanup.
     pub fn stop(&self) {
         self.hub.stop.store(true, Ordering::Release);
@@ -249,9 +286,11 @@ fn broadcast(hub: &Arc<Hub>, json: &str) {
 /// How often to ask the platen sensors what they see.
 ///
 /// Fast enough that putting a card down feels answered, slow enough that the
-/// two reads it costs are nothing beside a scan.
+/// two reads it costs - about ten milliseconds - are nothing beside a scan.
+/// The placement trigger counts readings, so this also sets how long a card
+/// must lie still before it is scanned; see [`crate::placement::STABLE`].
 #[cfg(windows)]
-const POLL: std::time::Duration = std::time::Duration::from_millis(200);
+const POLL: std::time::Duration = std::time::Duration::from_millis(100);
 
 /// How long to wait before looking for a scanner again.
 #[cfg(windows)]
@@ -399,6 +438,8 @@ fn watch(
             passport_scanner_device::protocol::VENDOR_ID,
             model.product_id(),
         );
+        settings.delays = settings.delays.quickened();
+        scanner.set_settle(settings.delays.white);
         broadcast(listeners, &timings_event(&settings, buzzer, profile));
         broadcast(listeners, &calibration_event(&active));
 

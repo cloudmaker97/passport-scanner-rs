@@ -79,6 +79,40 @@ fn selecting_history_preserves_every_unchanged_renderer_handle() {
 }
 
 #[test]
+fn history_reuses_held_scans_and_their_handles_without_images_on_the_wire() {
+    let mut desktop = app(Profile::General);
+    let scans: Vec<_> = (0..3)
+        .map(|index| pictured_scan(&format!("s{index}"), &format!("d{index}"), Side::Front))
+        .collect();
+    desktop.receive(Event::State { device: None, scans, selected: Some("s0".into()) });
+    let ids: HashMap<_, _> =
+        desktop.images.iter().map(|(key, handle)| (key.clone(), handle.id())).collect();
+
+    desktop.receive(Event::History {
+        scans: vec!["s0".into(), "s2".into()],
+        selected: Some("s2".into()),
+    });
+    assert_eq!(desktop.selected.as_deref(), Some("d2"));
+    assert_eq!(desktop.documents.0.len(), 2);
+    assert!(desktop.documents.get("d1").is_none());
+    assert_eq!(desktop.images.len(), 4);
+    for (key, handle) in &desktop.images {
+        assert_eq!(handle.id(), ids[key]);
+    }
+}
+
+#[test]
+fn history_naming_an_unknown_scan_asks_for_the_full_state() {
+    let sent = Rc::default();
+    let mut desktop = App::new(
+        Box::new(Scripted { sent: Rc::clone(&sent), ..Default::default() }),
+        Box::<Memory>::default(),
+    );
+    desktop.receive(Event::History { scans: vec!["missing".into()], selected: None });
+    assert_eq!(sent.borrow().as_slice(), [Command::GetState]);
+}
+
+#[test]
 fn changed_and_invalid_replacements_never_show_stale_images() {
     let mut desktop = app(Profile::General);
     let mut scan = pictured_scan("s1", "d1", Side::Front);
@@ -408,13 +442,15 @@ fn unreadable_events_are_reported_not_ignored() {
 }
 
 #[test]
-fn connecting_asks_for_state_and_export_outcomes_are_explained() {
+fn connecting_relies_on_the_replayed_state_and_export_outcomes_are_explained() {
     let sent = Rc::default();
     let mut desktop = App::new(
         Box::new(Scripted { sent: Rc::clone(&sent), ..Default::default() }),
         Box::<Memory>::default(),
     );
-    assert_eq!(sent.borrow().as_slice(), [Command::GetState]);
+    // The session replays its state on subscribing; asking again would send
+    // every image to every other client as well.
+    assert!(sent.borrow().is_empty());
     desktop.exporting = true;
     let _ = desktop.update(Message::Exported(Ok(ExportOutcome::Cancelled)));
     assert!(!desktop.exporting && desktop.notice.is_none());

@@ -48,6 +48,36 @@ pub struct Delays {
     pub timeout: Duration,
 }
 
+/// The longest lamp wait taken over from the vendor's file.
+///
+/// Its 400 ms is a blind wait; this code instead recognises the new picture
+/// ([`crate::steady`]), which takes frames until two in a row agree, so a
+/// lamp still coming up shows as frames that do not agree yet. Swept over
+/// real scans, 400, 100, 50 and 0 ms returned the same tonal spread.
+pub const LAMP_WAIT_CAP: Duration = Duration::from_millis(100);
+
+/// The longest wait after placement taken over from the vendor's file.
+///
+/// Its 500 ms is waited after the first sensor reading. The service only
+/// gets there once the sensors have read the same twice running, so part of
+/// that settling has already been seen; with this, a card has lain still for
+/// about 400 ms when the scan starts.
+pub const PLACEMENT_WAIT_CAP: Duration = Duration::from_millis(300);
+
+impl Delays {
+    /// The vendor's waits, shortened where this code checks for itself what
+    /// the wait guards against. A front end can still set longer ones.
+    #[must_use]
+    pub fn quickened(self) -> Self {
+        Self {
+            white: self.white.min(LAMP_WAIT_CAP),
+            infrared: self.infrared.min(LAMP_WAIT_CAP),
+            first: self.first.min(PLACEMENT_WAIT_CAP),
+            ..self
+        }
+    }
+}
+
 impl Default for Delays {
     fn default() -> Self {
         Self {
@@ -451,6 +481,18 @@ CameraProp-5M-IR=1,1,1,1,1,1,1,120,64,128,13,0,0,0\r
             CameraProps::parse("0,0,bad,0,0,0,0,30,64,128,13,0,0,0,99"),
             CameraProps::default()
         );
+    }
+
+    #[test]
+    fn quickening_shortens_only_the_waits_this_code_checks_for_itself() {
+        let quick = Delays::default().quickened();
+        assert_eq!(quick.white, LAMP_WAIT_CAP);
+        assert_eq!(quick.infrared, LAMP_WAIT_CAP);
+        assert_eq!(quick.first, PLACEMENT_WAIT_CAP);
+        assert_eq!(quick.ultraviolet, Delays::default().ultraviolet);
+        assert_eq!(quick.timeout, Delays::default().timeout);
+        let short = Delays { white: Duration::from_millis(20), ..Delays::default() };
+        assert_eq!(short.quickened().white, Duration::from_millis(20));
     }
 
     #[test]

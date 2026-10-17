@@ -60,10 +60,9 @@ pub fn open() -> Result<(OpenScanner, Model)> {
     // Timings and image controls come from the shipped driver's own
     // configuration for this model where it is installed, so they are the
     // numbers the device was built around rather than this code's guesses.
-    scanner.apply_settings(&passport_scanner_device::settings::Settings::load(
-        VENDOR_ID,
-        info.product,
-    ));
+    let mut settings = passport_scanner_device::settings::Settings::load(VENDOR_ID, info.product);
+    settings.delays = settings.delays.quickened();
+    scanner.apply_settings(&settings);
     scanner.initialise()?;
     Ok((scanner, model))
 }

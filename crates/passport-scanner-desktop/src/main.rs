@@ -94,10 +94,10 @@ impl Backend for HostBackend {
             return Ok(Vec::new());
         }
         let host = Host::start().map_err(|e| e.to_string())?;
+        // The subscription opens with the full state; nothing to add here.
         self.events = Some(host.subscribe());
-        let state = host.state();
         self.host = Some(Session(Arc::new(host)));
-        Ok(vec![state])
+        Ok(Vec::new())
     }
 
     fn connected(&self) -> bool {

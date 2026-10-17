@@ -60,13 +60,14 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
 
         // Repeated, because one run of each is not enough to tell a setting
         // that works from one that happened to work.
+        // 400 ms is the vendor's figure, 100 ms the cap this code uses.
         let runs: [(&str, u64, usize); 8] = [
-            ("100 ms settle", 100, 2),
-            ("50 ms settle", 50, 2),
+            ("400 ms settle (vendor)", 400, 2),
+            ("100 ms settle (default)", 100, 2),
             ("0 ms settle", 0, 2),
             ("0 ms, 1 start flush", 0, 1),
-            ("100 ms settle", 100, 2),
-            ("50 ms settle", 50, 2),
+            ("400 ms settle (vendor)", 400, 2),
+            ("100 ms settle (default)", 100, 2),
             ("0 ms settle", 0, 2),
             ("0 ms, 1 start flush", 0, 1),
         ];

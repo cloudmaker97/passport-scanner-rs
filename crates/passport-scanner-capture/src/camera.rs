@@ -9,7 +9,7 @@ use nokhwa::{
     pixel_format::RgbFormat,
     utils::{
         ApiBackend, CameraFormat, CameraIndex, ControlValueDescription, ControlValueSetter,
-        FrameFormat, RequestedFormat, RequestedFormatType, Resolution,
+        FrameFormat, KnownCameraControl, RequestedFormat, RequestedFormatType, Resolution,
     },
 };
 use passport_scanner_core::{Control, Error, Frame, FrameSource, LightSource, PixelFormat, Result};
@@ -205,6 +205,9 @@ fn run(
 
     let mut source = LightSource::White;
     let mut streaming = false;
+    // Control names and ids, read once per handle. Listing them is a round
+    // trip per control, and a scan sets every control the sensor has.
+    let mut known: Option<Vec<(String, KnownCameraControl)>> = None;
 
     while let Ok(request) = rx.recv() {
         if matches!(request, Request::Close) {
@@ -225,6 +228,7 @@ fn run(
                 drop(old);
             }
             streaming = false;
+            known = None;
             let result = Camera::new(CameraIndex::Index(index), format)
                 .map_err(wrap)
                 .map(|fresh| camera = Some(fresh));
@@ -310,7 +314,7 @@ fn run(
                 let _ = reply.send(r);
             }
             Request::SetControl(name, value, reply) => {
-                let r = set_control(camera, &name, value);
+                let r = set_control(camera, &mut known, &name, value);
                 let _ = reply.send(r);
             }
             Request::SetSource(_) | Request::Reopen(_) | Request::Close => unreachable!(),
@@ -323,14 +327,23 @@ fn run(
 }
 
 /// Apply one control, matched on the name the platform reports.
-fn set_control(camera: &mut Camera, name: &str, value: i64) -> Result<()> {
-    let found = camera
-        .camera_controls()
-        .map_err(wrap)?
-        .into_iter()
-        .find(|c| format!("{:?}", c.control()).eq_ignore_ascii_case(name))
+fn set_control(
+    camera: &mut Camera,
+    known: &mut Option<Vec<(String, KnownCameraControl)>>,
+    name: &str,
+    value: i64,
+) -> Result<()> {
+    if known.is_none() {
+        let list = camera.camera_controls().map_err(wrap)?;
+        *known = Some(list.iter().map(|c| (format!("{:?}", c.control()), c.control())).collect());
+    }
+    let control = known
+        .iter()
+        .flatten()
+        .find(|(known, _)| known.eq_ignore_ascii_case(name))
+        .map(|(_, control)| *control)
         .ok_or_else(|| Error::unsupported(format!("no camera control named {name}")))?;
-    camera.set_camera_control(found.control(), ControlValueSetter::Integer(value)).map_err(wrap)
+    camera.set_camera_control(control, ControlValueSetter::Integer(value)).map_err(wrap)
 }
 
 fn grab(camera: &mut Camera, streaming: &mut bool, source: LightSource) -> Result<Frame> {

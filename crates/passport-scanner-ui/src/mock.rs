@@ -38,6 +38,13 @@ impl Mock {
         }
     }
 
+    fn history(&self) -> Event {
+        Event::History {
+            scans: self.scans.iter().map(|scan| scan.id.clone()).collect(),
+            selected: self.selected.clone(),
+        }
+    }
+
     fn settings(&self) -> Event {
         Event::SettingsChanged {
             settings: BTreeMap::from([
@@ -97,11 +104,11 @@ impl Backend for Mock {
             Command::FinishDocument => {
                 self.open_document = None;
                 self.selected = None;
-                self.queue.push_back(self.state());
+                self.queue.push_back(self.history());
             }
             Command::SelectScan { id } => {
                 self.selected = Some(id);
-                self.queue.push_back(self.state());
+                self.queue.push_back(self.history());
             }
             Command::Discard { id } => {
                 // Like the service: the whole document goes, both sides.
@@ -110,7 +117,7 @@ impl Backend for Mock {
                 if self.selected.as_ref().is_some_and(|s| !self.scans.iter().any(|x| &x.id == s)) {
                     self.selected = None;
                 }
-                self.queue.push_back(self.state());
+                self.queue.push_back(self.history());
             }
             Command::SetAutoScan { enabled } => {
                 self.auto = enabled;

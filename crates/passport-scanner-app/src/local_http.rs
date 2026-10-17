@@ -221,7 +221,7 @@ fn serve(
             );
         }
         let answer = match parsed {
-            Ok(value) => crate::mcp::handle(value, &engine.scans()),
+            Ok(value) => crate::mcp::handle(value, &engine.scans_without_pixels()),
             Err(_) => Some(crate::mcp::parse_error()),
         };
         return match answer {
@@ -242,8 +242,10 @@ fn serve(
             &serde_json::to_vec(&engine.state())?,
         ),
         ("GET", "/events") => {
+            // Subscribing already hands this listener the whole picture.
+            // Asking for it again would broadcast every image in the session
+            // to every other listener as well.
             let rx = engine.subscribe();
-            engine.send(passport_scanner_protocol::Command::GetState).map_err(io::Error::other)?;
             write!(
                 stream,
                 "HTTP/1.1 200 OK\r\nContent-Type: text/event-stream\r\nCache-Control: no-store\r\nConnection: keep-alive\r\n\r\n"

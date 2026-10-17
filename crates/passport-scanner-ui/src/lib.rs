@@ -340,13 +340,11 @@ impl App {
         }
         match self.backend.connect() {
             Ok(events) => {
+                // Opening a session already replays its state, settings and
+                // calibration. Asking again would send every image in it to
+                // every other client too.
                 for event in events {
                     self.receive(event);
-                }
-                if self.backend.connected()
-                    && let Err(e) = self.backend.send(Command::GetState)
-                {
-                    self.fail(e);
                 }
                 self.refresh_services();
             }
@@ -750,6 +748,30 @@ impl App {
                 self.documents = documents;
                 self.prune_images();
                 self.selected = selected_document;
+            }
+            Event::History { scans: ids, selected } => {
+                // Rebuilt from the scans already held, images included, so a
+                // selection or discard costs no transfer and no decoding.
+                let known: HashMap<&str, &Scan> = self
+                    .documents
+                    .0
+                    .iter()
+                    .flat_map(|document| document.front.iter().chain(document.back.iter()))
+                    .map(|scan| (scan.id.as_str(), scan))
+                    .collect();
+                let scans: Option<Vec<Scan>> =
+                    ids.iter().map(|id| known.get(id.as_str()).map(|&scan| scan.clone())).collect();
+                match scans {
+                    Some(scans) => {
+                        self.receive(Event::State { device: self.device.clone(), scans, selected })
+                    }
+                    // Something was missed; only then is the whole state worth sending.
+                    None => {
+                        if let Err(e) = self.backend.send(Command::GetState) {
+                            self.fail(e);
+                        }
+                    }
+                }
             }
             Event::DeviceChanged { device } => {
                 self.device = device;
