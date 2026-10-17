@@ -18,8 +18,10 @@ image = { version = "0.25", default-features = false, features = ["jpeg", "png"]
 base64 = "0.22"
 
 # The browser runs futures through wasm-bindgen; natively Iced needs an executor.
+# Natively the GPU draws, which keeps scrolling smooth on a large window;
+# tiny-skia remains the fallback where no GPU adapter is available.
 [target.'cfg(not(target_arch = "wasm32"))'.dependencies]
-iced = { version = "0.14", default-features = false, features = ["tokio"] }
+iced = { version = "0.14", default-features = false, features = ["tokio", "wgpu"] }
 
 # Without a windowing backend softbuffer (under tiny-skia) has nothing to draw to on Linux.
 [target.'cfg(target_os = "linux")'.dependencies]
